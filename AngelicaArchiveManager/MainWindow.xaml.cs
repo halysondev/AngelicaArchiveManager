@@ -4,6 +4,7 @@ using AngelicaArchiveManager.Core.ArchiveEngine;
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -96,6 +97,22 @@ namespace AngelicaArchiveManager
         protected virtual void OnPropertyChanged(string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public ArchiveKey Keys
+        {
+            get => Settings.Keys[0];
+        }
+        private void Window_Drop(object sender, DragEventArgs e)
+        {
+            string path = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
+            var tab = new ArchiveTab(path, Keys);
+            tab.LoadDataWin += LoadData;
+            tab.CloseTab += CloseTab;
+            tab.TabIndex = Archives.Items.Count;
+            Archives.Items.Add(tab);
+            Archives.SelectedIndex = tab.TabIndex;
+            tab.Initialize();
         }
     }
 }

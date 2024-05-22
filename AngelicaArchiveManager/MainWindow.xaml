@@ -5,8 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AngelicaArchiveManager"
         mc:Ignorable="d"
-        Title="AngelicaArchiveManager v1.0" Height="600" Width="800" ResizeMode="CanMinimize">
-    <Grid>
+        Title="AngelicaArchiveManager v1.0" Height="600" Width="800" ResizeMode="CanMinimize" AllowDrop="True" Drop="Window_Drop" >
+    <Grid AllowDrop="True" >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
         <ToolBar Height="64" Margin="0,0,-20,0" VerticalAlignment="Top" ToolBarTray.IsLocked="True" ToolBar.OverflowMode="Never" Foreground="{x:Null}" BorderBrush="Black" Background="{x:Null}">
             <Separator/>
             <Button Width="96" Click="OpenFile">
@@ -75,8 +78,7 @@
                 </Grid>
             </Button>
         </ToolBar>
-        <TabControl Name="Archives" HorizontalAlignment="Left" Height="452" Margin="10,109,0,0" VerticalAlignment="Top" Width="772" SelectionChanged="Archives_SelectionChanged">
-        </TabControl>
+        <TabControl Name="Archives" HorizontalAlignment="Left" Height="452" Margin="10,109,0,0" VerticalAlignment="Top" Width="772" SelectionChanged="Archives_SelectionChanged"/>
         <TextBox Text="{Binding ArchivePath, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" KeyDown="PathEnter" HorizontalAlignment="Left" Height="23" Margin="10,81,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="772"/>
     </Grid>
 </Window>

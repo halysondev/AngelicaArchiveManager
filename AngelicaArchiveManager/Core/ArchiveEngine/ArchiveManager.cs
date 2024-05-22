@@ -434,6 +434,12 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                 File.Delete(pkx);
                 File.Move(pkx + ".defrag", pkx);
             }
+            string pkx1 = Path.Replace(".pck", ".pkx1");
+            if (File.Exists(pkx1))
+            {
+                File.Delete(pkx1);
+                File.Move(pkx1 + ".defrag", pkx1);
+            }
             ReadFileTable();
             Stream.Reopen(true);
             long newsize = Stream.GetLenght();
