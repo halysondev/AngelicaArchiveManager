@@ -1,4 +1,4 @@
-// Copyright © Decebal Mihailescu 2015
+// Copyright ?Decebal Mihailescu 2015
 // Some code was obtained by reverse engineering the PresentationFramework.dll using Reflector
 
 // All rights reserved.

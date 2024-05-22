@@ -55,7 +55,7 @@
             <ComboBoxItem Content="8"/>
             <ComboBoxItem Content="9"/>
         </ComboBox>
-        <Label Content="Уровень сжатия при добавление в архив" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="10,209,0,0" VerticalAlignment="Top" Width="306"/>
+        <Label Content="Compression level when adding to archive" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="10,209,0,0" VerticalAlignment="Top" Width="306"/>
         <Label Content="Language" HorizontalAlignment="Left" Margin="10,236,0,0" VerticalAlignment="Top" Width="114"/>
         <ComboBox Name="Language" HorizontalAlignment="Left" Margin="129,240,0,0" VerticalAlignment="Top" Width="252">
             <ComboBoxItem Content="English"/>

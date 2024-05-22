@@ -99,14 +99,21 @@ namespace AngelicaArchiveManager.Controls
                 try
                 {
                     Archive.ReadFileTable();
-                    Path = "\\";
+                    Table.Invoke((MethodInvoker)delegate
+                    {
+                        Path = "\\";
+                    });
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show($"{e.Message}\n{e.Source}\n{e.StackTrace}");
+                    Table.Invoke((MethodInvoker)delegate
+                    {
+                        MessageBox.Show($"{e.Message}\n{e.Source}\n{e.StackTrace}");
+                    });
                 }
             });
         }
+
 
         private void LoadData(byte type)
         {
@@ -332,19 +339,19 @@ namespace AngelicaArchiveManager.Controls
             });
             Table.Columns.Add(new DataGridViewTextBoxColumn()
             {
-                HeaderText = "Имя файла",
+                HeaderText = "File name",
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
                 Resizable = DataGridViewTriState.False
             });
             Table.Columns.Add(new DataGridViewTextBoxColumn()
             {
-                HeaderText = "Размер",
+                HeaderText = "Size",
                 Width = 120,
                 Resizable = DataGridViewTriState.False
             });
             Table.Columns.Add(new DataGridViewTextBoxColumn()
             {
-                HeaderText = "Сжатый размер",
+                HeaderText = "Compressed size",
                 Width = 120,
                 Resizable = DataGridViewTriState.False,
             });

@@ -16,7 +16,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Image Grid.Row="0" Source="Resources/open.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">Открыть</TextBlock>
+                    <TextBlock Grid.Row="1">Open</TextBlock>
                 </Grid>
             </Button>
             <Separator />
@@ -27,7 +27,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Image Grid.Row="0" Source="Resources/services.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">Настройки</TextBlock>
+                    <TextBlock Grid.Row="1">Settings</TextBlock>
                 </Grid>
             </Button>
             <Separator />
@@ -38,7 +38,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Image Grid.Row="0" Source="Resources/search.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">Поиск</TextBlock>
+                    <TextBlock Grid.Row="1">Search</TextBlock>
                 </Grid>
             </Button>
             <Separator />
@@ -49,7 +49,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Image Grid.Row="0" Source="Resources/synchronize.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">Дефрагментация</TextBlock>
+                    <TextBlock Grid.Row="1">Defragmentation</TextBlock>
                 </Grid>
             </Button>
             <Separator />
@@ -60,7 +60,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Image Grid.Row="0" Source="Resources/info.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">Информация</TextBlock>
+                    <TextBlock Grid.Row="1">Information</TextBlock>
                 </Grid>
             </Button>
             <Separator />
@@ -71,7 +71,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Image Grid.Row="0" Source="Resources/about.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">О программе</TextBlock>
+                    <TextBlock Grid.Row="1">About</TextBlock>
                 </Grid>
             </Button>
         </ToolBar>
