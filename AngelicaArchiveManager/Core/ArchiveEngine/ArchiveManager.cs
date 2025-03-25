@@ -9,7 +9,6 @@ using static AngelicaArchiveManager.Core.Events;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Concurrent;
-using System.Linq;
 
 namespace AngelicaArchiveManager.Core.ArchiveEngine
 {

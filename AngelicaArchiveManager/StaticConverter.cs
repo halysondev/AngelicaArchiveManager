@@ -9,6 +9,12 @@ namespace AngelicaArchiveManager
 {
     public static class StaticConverter
     {
+        static StaticConverter()
+        {
+            // Register CodePages encoding provider to support GB2312 (code page 936)
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
+        
         public static int ToInt32(this string value)
         {
             int.TryParse(value, out int res);

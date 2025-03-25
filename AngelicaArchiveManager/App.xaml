@@ -4,6 +4,171 @@
              xmlns:local="clr-namespace:AngelicaArchiveManager"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <!-- Theme Colors - Light Explorer Theme -->
+        <SolidColorBrush x:Key="PrimaryBackgroundColor" Color="#F0F0F0"/>
+        <SolidColorBrush x:Key="SecondaryBackgroundColor" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="PrimaryForegroundColor" Color="#000000"/>
+        <SolidColorBrush x:Key="SecondaryForegroundColor" Color="#333333"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#D3D3D3"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#C0C0C0"/>
+        <SolidColorBrush x:Key="ListItemHighlightColor" Color="#CCE8FF"/>
+        <SolidColorBrush x:Key="ToolbarBackgroundColor" Color="#F0F0F0"/>
+        <SolidColorBrush x:Key="TabHeaderColor" Color="#E1E1E1"/>
+
+        <!-- Button Style -->
+        <Style x:Key="ExplorerButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource SecondaryBackgroundColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5,2"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource AccentColor}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#C7C7C7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- TextBox Style -->
+        <Style x:Key="ExplorerTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource SecondaryBackgroundColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="3"/>
+        </Style>
+
+        <!-- TabControl Style -->
+        <Style x:Key="ExplorerTabControl" TargetType="TabControl">
+            <Setter Property="Background" Value="{StaticResource SecondaryBackgroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+
+        <!-- TabItem Style -->
+        <Style x:Key="ExplorerTabItem" TargetType="TabItem">
+            <Setter Property="Background" Value="{StaticResource TabHeaderColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1,1,1,0"/>
+            <Setter Property="Padding" Value="5,2"/>
+            <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border Name="Border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter ContentSource="Header" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource SecondaryBackgroundColor}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource AccentColor}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ListBox Style -->
+        <Style x:Key="ExplorerListBox" TargetType="ListBox">
+            <Setter Property="Background" Value="{StaticResource SecondaryBackgroundColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        </Style>
+
+        <!-- TreeView Style -->
+        <Style x:Key="ExplorerTreeView" TargetType="TreeView">
+            <Setter Property="Background" Value="{StaticResource SecondaryBackgroundColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- TreeViewItem Style -->
+        <Style x:Key="ExplorerTreeViewItem" TargetType="TreeViewItem">
+            <Setter Property="IsExpanded" Value="True"/>
+        </Style>
+
+        <!-- ComboBox Style -->
+        <Style x:Key="ExplorerComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="{StaticResource SecondaryBackgroundColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- ToolBar Style -->
+        <Style x:Key="ExplorerToolBar" TargetType="ToolBar">
+            <Setter Property="Background" Value="{StaticResource ToolbarBackgroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        </Style>
+
+        <!-- DataGrid Style -->
+        <Style x:Key="ExplorerDataGrid" TargetType="DataGrid">
+            <Setter Property="Background" Value="{StaticResource SecondaryBackgroundColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowBackground" Value="{StaticResource SecondaryBackgroundColor}"/>
+            <Setter Property="AlternatingRowBackground" Value="#F5F5F5"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="False"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+        </Style>
+
+        <!-- Window Style -->
+        <Style x:Key="ExplorerWindow" TargetType="Window">
+            <Setter Property="Background" Value="{StaticResource PrimaryBackgroundColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="WindowStyle" Value="SingleBorderWindow"/>
+        </Style>
+        
+        <!-- Label Style -->
+        <Style x:Key="ExplorerLabel" TargetType="Label">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
+            <Setter Property="Padding" Value="0,3"/>
+        </Style>
+        
+        <!-- Status Bar Style -->
+        <Style x:Key="ExplorerStatusBar" TargetType="StatusBar">
+            <Setter Property="Background" Value="{StaticResource ToolbarBackgroundColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="0,1,0,0"/>
+        </Style>
+
+        <!-- Close Button Style (Keep original for tab closing) -->
         <Style x:Key="CloseButtonStyle" TargetType="Button">
             <Setter Property="Template">
                 <Setter.Value>
@@ -27,6 +192,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        
         <Style x:Key="ClosableTabItemStyle" TargetType="TabItem">
             <Setter Property="HeaderTemplate">
                 <Setter.Value>

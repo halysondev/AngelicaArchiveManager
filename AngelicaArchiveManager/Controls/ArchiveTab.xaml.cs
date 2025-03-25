@@ -43,6 +43,8 @@ namespace AngelicaArchiveManager.Controls
 
         public event LoadData LoadDataWin;
         public event CloseTab CloseTab;
+        public delegate void FoldersUpdatedHandler(Dictionary<string, HashSet<string>> folders);
+        public event FoldersUpdatedHandler FoldersUpdated;
 
         #region Progress
         private int _ProgressMax = 1;
@@ -139,6 +141,12 @@ namespace AngelicaArchiveManager.Controls
                             path += $"{part}\\";
                         }
                     }
+                    
+                    // Use Dispatcher to ensure the event is triggered on the UI thread
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        FoldersUpdated?.Invoke(_Folders);
+                    }));
                     break;
                 case 1:
                     ReloadTable();
@@ -152,13 +160,22 @@ namespace AngelicaArchiveManager.Controls
             int count1 = _Folders.ContainsKey(Path) ? _Folders[Path].Count : 0;
             int count2 = _Files.ContainsKey(Path) ? _Files[Path].Count : 0;
             Table.Rows.Add(count1 + count2 + 1);
-            Table.Rows[0].SetValues(Properties.Resources.folder, "...", "", "");
+            
+            // Set the first row as the parent folder
+            Table.Rows[0].Cells[0].Value = Properties.Resources.folder;
+            Table.Rows[0].Cells[1].Value = "...";
+            Table.Rows[0].Cells[2].Value = "";
+            Table.Rows[0].Cells[3].Value = "";
+            
             int i = 1;
             if (count1 > 0)
             {
                 foreach (var f in _Folders[Path])
                 {
-                    Table.Rows[i].SetValues(Properties.Resources.folder, f, "", "");
+                    Table.Rows[i].Cells[0].Value = Properties.Resources.folder;
+                    Table.Rows[i].Cells[1].Value = f;
+                    Table.Rows[i].Cells[2].Value = "";
+                    Table.Rows[i].Cells[3].Value = "";
                     ++i;
                 }
             }
@@ -166,13 +183,24 @@ namespace AngelicaArchiveManager.Controls
             {
                 foreach (var f in _Files[Path])
                 {
-                    Table.Rows[i].SetValues(Properties.Resources.file,
-                        System.IO.Path.GetFileName(f.Path),
-                        f.Size,
-                        f.CSize);
+                    Table.Rows[i].Cells[0].Value = Properties.Resources.file;
+                    Table.Rows[i].Cells[1].Value = System.IO.Path.GetFileName(f.Path);
+                    Table.Rows[i].Cells[2].Value = FormatFileSize(f.Size);
+                    Table.Rows[i].Cells[3].Value = FormatFileSize(f.CSize);
                     ++i;
                 }
             }
+        }
+        
+        // Helper method to format file sizes to match the reference application
+        private string FormatFileSize(long size)
+        {
+            if (size < 1024)
+                return size.ToString();
+            else if (size < 1024 * 1024)
+                return $"{size / 1024} {size % 1024:D3}";
+            else
+                return $"{size / (1024 * 1024)} {(size % (1024 * 1024)) / 1024:D3} {size % 1024:D3}";
         }
 
         public void Defrag()
@@ -348,11 +376,28 @@ namespace AngelicaArchiveManager.Controls
         {
             if (e.Button != MouseButtons.Right)
                 return;
-            var menu = new System.Windows.Forms.ContextMenu(
-                new System.Windows.Forms.MenuItem[] { new System.Windows.Forms.MenuItem("Open As",
-                new System.Windows.Forms.MenuItem[] { new System.Windows.Forms.MenuItem("As .ski model", new EventHandler(AsModel)) }
-            )});
-            menu.Show(Table, e.Location);
+            
+            // Create a WPF ContextMenu instead of WinForms ContextMenu
+            var menu = new System.Windows.Controls.ContextMenu();
+            var openAsMenuItem = new System.Windows.Controls.MenuItem { Header = "Open As" };
+            var asModelMenuItem = new System.Windows.Controls.MenuItem { Header = "As .ski model" };
+            asModelMenuItem.Click += new System.Windows.RoutedEventHandler((s, args) => AsModel(s, args));
+            
+            openAsMenuItem.Items.Add(asModelMenuItem);
+            menu.Items.Add(openAsMenuItem);
+            
+            // Convert mouse position to screen coordinates
+            System.Drawing.Point screenPoint = Table.PointToScreen(e.Location);
+            
+            // Convert screen coordinates to WPF coordinates
+            System.Windows.Point wpfPoint = Host.PointFromScreen(new System.Windows.Point(screenPoint.X, screenPoint.Y));
+            
+            // Open context menu
+            menu.PlacementTarget = Host;
+            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.RelativePoint;
+            menu.HorizontalOffset = wpfPoint.X;
+            menu.VerticalOffset = wpfPoint.Y;
+            menu.IsOpen = true;
         }
 
         #region Table
@@ -369,58 +414,65 @@ namespace AngelicaArchiveManager.Controls
                 RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
-                AllowUserToResizeColumns = false,
+                AllowUserToResizeColumns = true,
                 AllowUserToResizeRows = false,
-                AllowDrop = true,
+                GridColor = Color.LightGray,
+                CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
+                BorderStyle = BorderStyle.None,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
             };
-            Table.RowTemplate.Height = 24;
-            Table.RowTemplate.Resizable = DataGridViewTriState.False;
-            Table.Columns.Add(new DataGridViewImageColumn()
+            
+            // Configure the selection colors to match the reference application
+            Table.DefaultCellStyle.SelectionBackColor = Color.FromArgb(204, 232, 255); // Light blue selection color
+            Table.DefaultCellStyle.SelectionForeColor = Color.Black; // Keep text black when selected
+            
+            var column1 = new DataGridViewImageColumn
             {
-                HeaderText = "",
+                Name = "Icon",
                 Width = 24,
-                Resizable = DataGridViewTriState.False
-            });
-            Table.Columns.Add(new DataGridViewTextBoxColumn()
+                HeaderText = "",
+                ReadOnly = true
+            };
+            var column2 = new DataGridViewTextBoxColumn
             {
+                Name = "Filename",
+                Width = 250,
                 HeaderText = "File name",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                Resizable = DataGridViewTriState.False
-            });
-            Table.Columns.Add(new DataGridViewTextBoxColumn()
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic
+            };
+            var column3 = new DataGridViewTextBoxColumn
             {
+                Name = "Size",
+                Width = 100,
                 HeaderText = "Size",
-                Width = 120,
-                Resizable = DataGridViewTriState.False
-            });
-            Table.Columns.Add(new DataGridViewTextBoxColumn()
+                ReadOnly = true,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight },
+                SortMode = DataGridViewColumnSortMode.Automatic
+            };
+            var column4 = new DataGridViewTextBoxColumn
             {
+                Name = "Compressed",
+                Width = 100,
                 HeaderText = "Compressed size",
-                Width = 120,
-                Resizable = DataGridViewTriState.False,
-            });
-            foreach (var column in Table.Columns)
-            {
-                if (column is DataGridViewTextBoxColumn)
-                {
-                    (column as DataGridViewTextBoxColumn).HeaderCell.Style.BackColor = Color.White;
-                    //(column as DataGridViewTextBoxColumn).CellTemplate.Style.SelectionBackColor = System.Drawing.Color.LightYellow;
-                    (column as DataGridViewTextBoxColumn).Resizable = DataGridViewTriState.False;
-                }
-                if (column is DataGridViewImageColumn)
-                {
-                    (column as DataGridViewImageColumn).HeaderCell.Style.BackColor = Color.White;
-                    (column as DataGridViewImageColumn).CellTemplate.Style.SelectionBackColor = Color.Transparent;
-                    (column as DataGridViewImageColumn).Resizable = DataGridViewTriState.False;
-                }
-            }
+                ReadOnly = true,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight },
+                SortMode = DataGridViewColumnSortMode.Automatic
+            };
+
+            Table.Columns.Add(column1);
+            Table.Columns.Add(column2);
+            Table.Columns.Add(column3);
+            Table.Columns.Add(column4);
+
             Table.CellDoubleClick += CellDoubleClick;
-            Table.DragEnter += DragEnter;
-            Table.DragDrop += DragDrop;
-            Table.MouseUp += MouseUp;
             Table.MouseDown += MouseDown;
             Table.MouseMove += MouseMove;
+            Table.MouseUp += MouseUp;
             Table.MouseClick += MouseClick;
+            Table.DragEnter += DragEnter;
+            Table.DragDrop += DragDrop;
+            Table.AllowDrop = true;
         }
         #endregion
 
@@ -434,6 +486,13 @@ namespace AngelicaArchiveManager.Controls
         }
 
         private void AsModel(object sender, EventArgs e)
+        {
+            if (Table.SelectedRows.Count < 1 || IsDirectory(Table.SelectedRows[0].Index))
+                return;
+            OpenPreview(Archive.Files.Where(x => x.Path.StartsWith(Path.RemoveFirstSeparator()) && x.Path.EndsWith(Table.Rows[Table.SelectedRows[0].Index].Cells[1].Value.ToString())).First(), PreviewType.SkiModel);
+        }
+        
+        private void AsModel(object sender, System.Windows.RoutedEventArgs e)
         {
             if (Table.SelectedRows.Count < 1 || IsDirectory(Table.SelectedRows[0].Index))
                 return;
@@ -454,6 +513,19 @@ namespace AngelicaArchiveManager.Controls
             viewer.File = entry;
             viewer.Prepare();
             (viewer as System.Windows.Window).Show();
+        }
+
+        public void RefreshFolders()
+        {
+            // Trigger folder update event with current folders
+            if (_Folders.Count > 0)
+            {
+                // Use Dispatcher to ensure the event is triggered on the UI thread
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    FoldersUpdated?.Invoke(_Folders);
+                }));
+            }
         }
     }
 }

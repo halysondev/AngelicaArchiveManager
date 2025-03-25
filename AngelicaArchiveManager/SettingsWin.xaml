@@ -5,15 +5,34 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AngelicaArchiveManager"
         mc:Ignorable="d"
-        Title="SettingsWin" Height="330" Width="400" ResizeMode="NoResize">
+        Title="Settings" Height="330" Width="400" 
+        Background="{StaticResource PrimaryBackgroundColor}"
+        Foreground="{StaticResource PrimaryForegroundColor}"
+        ResizeMode="CanResize" MinHeight="330" MinWidth="400"
+        Style="{StaticResource ExplorerWindow}">
     <Window.Resources>
         <local:StringFormatToIntConverter x:Key="StringFormatToIntConverter"/>
     </Window.Resources>
-    <Grid>
-        <ListBox SelectedIndex="{Binding Index, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Keys, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="194" Margin="10,10,0,0" VerticalAlignment="Top" Width="140">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <ListBox Grid.Row="0" Grid.Column="0" 
+                 Style="{StaticResource ExplorerListBox}"
+                 SelectedIndex="{Binding Index, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                 ItemsSource="{Binding Keys, UpdateSourceTrigger=PropertyChanged}" 
+                 Margin="0,0,10,0">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock>
+                    <TextBlock Foreground="{StaticResource PrimaryForegroundColor}">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}">
                                 <Binding Path="Name" />
@@ -23,45 +42,78 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
             <ListBox.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Add" Click="AddClick"/>
-                    <MenuItem Header="Remove" Click="RemoveClick"/>
+                <ContextMenu Background="{StaticResource SecondaryBackgroundColor}"
+                             BorderBrush="{StaticResource BorderColor}">
+                    <MenuItem Header="Add" Click="AddClick" 
+                              Foreground="{StaticResource PrimaryForegroundColor}"
+                              Background="{StaticResource SecondaryBackgroundColor}"/>
+                    <MenuItem Header="Remove" Click="RemoveClick" 
+                              Foreground="{StaticResource PrimaryForegroundColor}"
+                              Background="{StaticResource SecondaryBackgroundColor}"/>
                 </ContextMenu>
             </ListBox.ContextMenu>
         </ListBox>
-        <Label Content="Name" HorizontalAlignment="Left" Margin="155,10,0,0" VerticalAlignment="Top"/>
-        <TextBox Text="{Binding Key.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="23" Margin="197,13,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="184"/>
-        <Label Content="KEY1" HorizontalAlignment="Left" Margin="155,38,0,0" VerticalAlignment="Top"/>
-        <TextBox Text="{Binding Key.KEY_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="23" Margin="197,41,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="184"/>
-        <Label Content="KEY2" HorizontalAlignment="Left" Margin="156,66,0,0" VerticalAlignment="Top"/>
-        <TextBox Text="{Binding Key.KEY_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="23" Margin="198,69,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="184"/>
-        <Label Content="ASIG1" HorizontalAlignment="Left" Margin="156,94,0,0" VerticalAlignment="Top"/>
-        <TextBox Text="{Binding Key.ASIG_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="23" Margin="198,97,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="184"/>
-        <Label Content="ASIG2" HorizontalAlignment="Left" Margin="156,122,0,0" VerticalAlignment="Top"/>
-        <TextBox Text="{Binding Key.ASIG_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="23" Margin="198,125,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="184"/>
-        <Label Content="FSIG1" HorizontalAlignment="Left" Margin="156,150,0,0" VerticalAlignment="Top"/>
-        <TextBox Text="{Binding Key.FSIG_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="23" Margin="198,153,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="184"/>
-        <Label Content="FSIG2" HorizontalAlignment="Left" Margin="155,178,0,0" VerticalAlignment="Top"/>
-        <TextBox Text="{Binding Key.FSIG_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="23" Margin="197,181,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="184"/>
-        <ComboBox Name="Compression" HorizontalAlignment="Left" Margin="321,213,0,0" VerticalAlignment="Top" Width="60">
-            <ComboBoxItem Content="0"/>
-            <ComboBoxItem Content="1"/>
-            <ComboBoxItem Content="2"/>
-            <ComboBoxItem Content="3"/>
-            <ComboBoxItem Content="4"/>
-            <ComboBoxItem Content="5"/>
-            <ComboBoxItem Content="6"/>
-            <ComboBoxItem Content="7"/>
-            <ComboBoxItem Content="8"/>
-            <ComboBoxItem Content="9"/>
-        </ComboBox>
-        <Label Content="Compression level when adding to archive" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="10,209,0,0" VerticalAlignment="Top" Width="306"/>
-        <Label Content="Language" HorizontalAlignment="Left" Margin="10,236,0,0" VerticalAlignment="Top" Width="114"/>
-        <ComboBox Name="Language" HorizontalAlignment="Left" Margin="129,240,0,0" VerticalAlignment="Top" Width="252">
-            <ComboBoxItem Content="English"/>
-            <ComboBoxItem Content="Russian"/>
-            <ComboBoxItem Content="China"/>
-        </ComboBox>
-        <Button Content="Save" HorizontalAlignment="Left" Margin="10,269,0,0" VerticalAlignment="Top" Width="372" Click="SaveClick"/>
+
+        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,0">
+            <Label Content="Name" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <TextBox Text="{Binding Key.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
+            
+            <Label Content="KEY1" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <TextBox Text="{Binding Key.KEY_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
+            
+            <Label Content="KEY2" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <TextBox Text="{Binding Key.KEY_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
+            
+            <Label Content="ASIG1" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <TextBox Text="{Binding Key.ASIG_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
+            
+            <Label Content="ASIG2" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <TextBox Text="{Binding Key.ASIG_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
+            
+            <Label Content="FSIG1" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <TextBox Text="{Binding Key.FSIG_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
+            
+            <Label Content="FSIG2" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <TextBox Text="{Binding Key.FSIG_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource ExplorerTextBox}"/>
+        </StackPanel>
+        
+        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,15,0,5">
+            <Label Content="Compression level:" Foreground="{StaticResource PrimaryForegroundColor}" 
+                   Style="{StaticResource ExplorerLabel}" VerticalAlignment="Center"/>
+            <ComboBox Name="Compression" Width="60" Style="{StaticResource ExplorerComboBox}" Margin="5,0,0,0">
+                <ComboBoxItem Content="0"/>
+                <ComboBoxItem Content="1"/>
+                <ComboBoxItem Content="2"/>
+                <ComboBoxItem Content="3"/>
+                <ComboBoxItem Content="4"/>
+                <ComboBoxItem Content="5"/>
+                <ComboBoxItem Content="6"/>
+                <ComboBoxItem Content="7"/>
+                <ComboBoxItem Content="8"/>
+                <ComboBoxItem Content="9"/>
+            </ComboBox>
+        </StackPanel>
+        
+        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,5,0,15">
+            <Label Content="Language:" Foreground="{StaticResource PrimaryForegroundColor}" 
+                   Style="{StaticResource ExplorerLabel}" VerticalAlignment="Center"/>
+            <ComboBox x:Name="Language" Width="250" Style="{StaticResource ExplorerComboBox}" Margin="5,0,0,0">
+                <ComboBoxItem Content="English"/>
+                <ComboBoxItem Content="Russian"/>
+                <ComboBoxItem Content="China"/>
+            </ComboBox>
+        </StackPanel>
+        
+        <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" 
+                Content="Save" Click="SaveClick" 
+                Style="{StaticResource ExplorerButton}"
+                Height="30"/>
     </Grid>
 </Window>

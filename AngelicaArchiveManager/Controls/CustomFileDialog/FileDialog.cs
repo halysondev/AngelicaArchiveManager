@@ -11,7 +11,7 @@
 // REMAINS UNCHANGED.
 namespace AngelicaArchiveManager.Controls.CustomFileDialog
 {
-    using MS.Win32;
+    using Microsoft.Win32;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;

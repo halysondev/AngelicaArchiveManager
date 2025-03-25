@@ -12,7 +12,7 @@
 namespace AngelicaArchiveManager.Controls.CustomFileDialog
 {
     //using MS.Internal.PresentationFramework;
-    using MS.Win32;
+    using Microsoft.Win32;
     using System;
     using System.IO;
     using System.Security;

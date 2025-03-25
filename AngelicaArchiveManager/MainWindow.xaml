@@ -5,80 +5,130 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AngelicaArchiveManager"
         mc:Ignorable="d"
-        Title="AngelicaArchiveManager v1.0" Height="600" Width="800" ResizeMode="CanMinimize" AllowDrop="True" Drop="Window_Drop" >
-    <Grid AllowDrop="True" >
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <ToolBar Height="64" Margin="0,0,-20,0" VerticalAlignment="Top" ToolBarTray.IsLocked="True" ToolBar.OverflowMode="Never" Foreground="{x:Null}" BorderBrush="Black" Background="{x:Null}">
+        Title="AngelicaArchiveManager v1.0" Height="600" Width="800" 
+        ResizeMode="CanResize" AllowDrop="True" Drop="Window_Drop"
+        Background="{StaticResource PrimaryBackgroundColor}"
+        Foreground="{StaticResource PrimaryForegroundColor}"
+        MinWidth="600" MinHeight="450">
+    <DockPanel LastChildFill="True">
+        <!-- Menu Bar -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="Open" Click="OpenFile"/>
+                <MenuItem Header="Exit"/>
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Settings" Click="SettingsClick"/>
+            </MenuItem>
+            <MenuItem Header="Tools">
+                <MenuItem Header="Defragmentation" Click="Defrag"/>
+            </MenuItem>
+        </Menu>
+        
+        <!-- Toolbar -->
+        <ToolBar DockPanel.Dock="Top" Height="40" Background="{StaticResource ToolbarBackgroundColor}"
+                BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1">
+            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Resources/open.png" Width="16" Height="16"/>
+                    <TextBlock Text="Rename" FontSize="10"/>
+                </StackPanel>
+            </Button>
             <Separator/>
-            <Button Width="96" Click="OpenFile">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Image Grid.Row="0" Source="Resources/open.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">Open</TextBlock>
-                </Grid>
+            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Resources/services.png" Width="16" Height="16"/>
+                    <TextBlock Text="Select all" FontSize="10"/>
+                </StackPanel>
             </Button>
-            <Separator />
-            <Button Width="96" Click="SettingsClick">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Image Grid.Row="0" Source="Resources/services.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">Settings</TextBlock>
-                </Grid>
+            <Separator/>
+            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Resources/search.png" Width="16" Height="16"/>
+                    <TextBlock Text="Copy" FontSize="10"/>
+                </StackPanel>
             </Button>
-            <Separator />
-            <Button Width="96">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Image Grid.Row="0" Source="Resources/search.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">Search</TextBlock>
-                </Grid>
+            <Separator/>
+            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Resources/synchronize.png" Width="16" Height="16"/>
+                    <TextBlock Text="Cut" FontSize="10"/>
+                </StackPanel>
             </Button>
-            <Separator />
-            <Button Width="96" Click="Defrag">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Image Grid.Row="0" Source="Resources/synchronize.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">Defragmentation</TextBlock>
-                </Grid>
+            <Separator/>
+            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Resources/info.png" Width="16" Height="16"/>
+                    <TextBlock Text="Paste" FontSize="10"/>
+                </StackPanel>
             </Button>
-            <Separator />
-            <Button Width="96">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Image Grid.Row="0" Source="Resources/info.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">Information</TextBlock>
-                </Grid>
-            </Button>
-            <Separator />
-            <Button Width="96">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Image Grid.Row="0" Source="Resources/about.png" Width="32" Height="32"/>
-                    <TextBlock Grid.Row="1">About</TextBlock>
-                </Grid>
+            <Separator/>
+            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Resources/about.png" Width="16" Height="16"/>
+                    <TextBlock Text="Delete" FontSize="10"/>
+                </StackPanel>
             </Button>
         </ToolBar>
-        <TabControl Name="Archives" HorizontalAlignment="Left" Height="452" Margin="10,109,0,0" VerticalAlignment="Top" Width="772" SelectionChanged="Archives_SelectionChanged"/>
-        <TextBox Text="{Binding ArchivePath, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" KeyDown="PathEnter" HorizontalAlignment="Left" Height="23" Margin="10,81,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="772"/>
-    </Grid>
+        
+        <!-- Path TextBox -->
+        <TextBox DockPanel.Dock="Top" Text="{Binding ArchivePath, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" 
+                 KeyDown="PathEnter" Margin="5,5,5,0" Background="White" BorderBrush="#C0C0C0"/>
+        
+        <!-- Status Bar -->
+        <StatusBar DockPanel.Dock="Bottom" Background="{StaticResource ToolbarBackgroundColor}" 
+                  BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Height="22">
+            <StatusBarItem>
+                <TextBlock Name="FileCount" Text="0"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock>Files: <Run Name="FragmentCount">0</Run></TextBlock>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Name="CurrentPath">No archive loaded</TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+        
+        <!-- Main Content -->
+        <Grid>
+            <!-- No Archive Loaded Message -->
+            <Grid Name="NoArchiveGrid" Visibility="Visible">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Image Source="Resources/folder.png" Width="64" Height="64" Margin="0,0,0,20"/>
+                    <TextBlock Text="No Archive Loaded" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Open an archive file or drag and drop it here" FontSize="14" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                    <Button Content="Open Archive..." Click="OpenFile" Margin="0,20,0,0" Padding="15,5" 
+                           Background="White" BorderBrush="#C0C0C0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Archive Content View (shown only when archives are loaded) -->
+            <Grid Name="ArchiveContentGrid" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220" MinWidth="150"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Directory Tree -->
+                <TreeView Grid.Column="0" Margin="0" Name="DirectoryTree" 
+                         Background="White" BorderBrush="#C0C0C0"
+                         SelectedItemChanged="DirectoryTree_SelectedItemChanged">
+                    <!-- TreeView items will be added dynamically when an archive is loaded -->
+                </TreeView>
+                
+                <!-- GridSplitter -->
+                <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Center" VerticalAlignment="Stretch" 
+                            Background="{StaticResource BorderColor}"/>
+                
+                <!-- File View -->
+                <TabControl Grid.Column="2" Name="Archives" Margin="0" 
+                          Background="White" BorderBrush="#C0C0C0" BorderThickness="1" Padding="0"
+                          SelectionChanged="Archives_SelectionChanged">
+                    <!-- TabItems will be added dynamically when an archive is loaded -->
+                </TabControl>
+            </Grid>
+        </Grid>
+    </DockPanel>
 </Window>
