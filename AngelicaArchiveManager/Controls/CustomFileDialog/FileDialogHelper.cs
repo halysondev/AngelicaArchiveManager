@@ -379,10 +379,42 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
         }
         protected object InvokeMethod(object instance, string methodName, params object[] args)
         {
-            Type type = (instance is Type) ? instance as Type : instance.GetType();
-            MethodInfo mi = type.GetMethod(methodName, (instance is Type) ? BindingFlags.NonPublic | BindingFlags.Static : BindingFlags.NonPublic | BindingFlags.Instance);//invoking the method                 
-            //null- no parameter for the function [or] we can pass the array of parameters            
-            return (args == null || args.Length == 0) ? mi.Invoke(instance, null) : mi.Invoke(instance, args);
+            if (instance == null)
+            {
+                // Log error or handle null instance
+                System.Diagnostics.Debug.WriteLine($"Error: Null instance passed to InvokeMethod for method {methodName}");
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(methodName))
+            {
+                // Log error or handle null/empty method name
+                System.Diagnostics.Debug.WriteLine("Error: Null or empty method name passed to InvokeMethod");
+                return null;
+            }
+
+            try
+            {
+                Type type = (instance is Type) ? instance as Type : instance.GetType();
+                MethodInfo mi = type.GetMethod(methodName, (instance is Type) ? BindingFlags.NonPublic | BindingFlags.Static : BindingFlags.NonPublic | BindingFlags.Instance);
+                
+                if (mi == null)
+                {
+                    // Method not found
+                    System.Diagnostics.Debug.WriteLine($"Error: Method '{methodName}' not found on type {type.FullName}");
+                    return null;
+                }
+                
+                //null- no parameter for the function [or] we can pass the array of parameters            
+                return (args == null || args.Length == 0) ? mi.Invoke(instance, null) : mi.Invoke(instance, args);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                System.Diagnostics.Debug.WriteLine($"Error in InvokeMethod: {ex.Message}");
+                // Optional: re-throw or return null
+                return null;
+            }
         }
         protected object GetProperty(object target, string fieldName)
         {
