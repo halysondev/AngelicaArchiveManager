@@ -43,6 +43,31 @@ namespace AngelicaArchiveManager
             
             // Initially show the "No Archive Loaded" message
             UpdateArchiveVisibility();
+            
+            // Add SizeChanged event handler for window resizing
+            this.SizeChanged += MainWindow_SizeChanged;
+            
+            // Initialize menu tabs
+            InitializeMenuTabs();
+        }
+
+        /// <summary>
+        /// Initialize menu tab handling
+        /// </summary>
+        private void InitializeMenuTabs()
+        {
+            // Set default tab
+            MainMenuTabs.SelectedIndex = 0;
+            
+            // Ensure tab content is visible on selection
+            MainMenuTabs.SelectionChanged += (sender, e) => 
+            {
+                // Make sure the selected tab content is visible
+                if (MainMenuTabs.SelectedItem is TabItem selectedTab)
+                {
+                    selectedTab.IsSelected = true;
+                }
+            };
         }
 
         private void OpenFile(object sender, RoutedEventArgs e)
@@ -291,6 +316,15 @@ namespace AngelicaArchiveManager
             }
             
             return path;
+        }
+
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // Notify any visible ArchiveTab to update column sizing
+            if (Archives.SelectedItem != null && Archives.SelectedItem is ArchiveTab tab)
+            {
+                tab.HandleResize();
+            }
         }
     }
 }

@@ -12,64 +12,163 @@
         MinWidth="600" MinHeight="450">
     <DockPanel LastChildFill="True">
         <!-- Menu Bar -->
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="File">
-                <MenuItem Header="Open" Click="OpenFile"/>
-                <MenuItem Header="Exit"/>
-            </MenuItem>
-            <MenuItem Header="Edit">
-                <MenuItem Header="Settings" Click="SettingsClick"/>
-            </MenuItem>
-            <MenuItem Header="Tools">
-                <MenuItem Header="Defragmentation" Click="Defrag"/>
-            </MenuItem>
-        </Menu>
-        
-        <!-- Toolbar -->
-        <ToolBar DockPanel.Dock="Top" Height="40" Background="{StaticResource ToolbarBackgroundColor}"
-                BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1">
-            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Resources/open.png" Width="16" Height="16"/>
-                    <TextBlock Text="Rename" FontSize="10"/>
-                </StackPanel>
-            </Button>
-            <Separator/>
-            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Resources/services.png" Width="16" Height="16"/>
-                    <TextBlock Text="Select all" FontSize="10"/>
-                </StackPanel>
-            </Button>
-            <Separator/>
-            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Resources/search.png" Width="16" Height="16"/>
-                    <TextBlock Text="Copy" FontSize="10"/>
-                </StackPanel>
-            </Button>
-            <Separator/>
-            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Resources/synchronize.png" Width="16" Height="16"/>
-                    <TextBlock Text="Cut" FontSize="10"/>
-                </StackPanel>
-            </Button>
-            <Separator/>
-            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Resources/info.png" Width="16" Height="16"/>
-                    <TextBlock Text="Paste" FontSize="10"/>
-                </StackPanel>
-            </Button>
-            <Separator/>
-            <Button Width="60" Margin="3,0" Background="{StaticResource SecondaryBackgroundColor}">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Resources/about.png" Width="16" Height="16"/>
-                    <TextBlock Text="Delete" FontSize="10"/>
-                </StackPanel>
-            </Button>
-        </ToolBar>
+        <Grid DockPanel.Dock="Top">
+            <!-- Menu Tabs -->
+            <TabControl x:Name="MainMenuTabs" Background="{StaticResource ToolbarBackgroundColor}" BorderThickness="0,0,0,1" BorderBrush="{StaticResource BorderColor}">
+                <TabControl.Resources>
+                    <Style TargetType="TabItem">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding" Value="10,2"/>
+                        <Setter Property="Margin" Value="0"/>
+                    </Style>
+                </TabControl.Resources>
+                
+                <!-- File Tab -->
+                <TabItem Header="File" x:Name="FileTab">
+                    <WrapPanel Orientation="Horizontal">
+                        <Button Background="Transparent" BorderThickness="0" Margin="5" Click="OpenFile">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/imgmenu/Item0_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Open" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/imgmenu/Item1_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Edit" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                    </WrapPanel>
+                </TabItem>
+                
+                <!-- Edit Tab -->
+                <TabItem Header="Edit" x:Name="EditTab">
+                    <WrapPanel Orientation="Horizontal">
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item0_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Rename" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item16_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Select all" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item1_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Copy" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item2_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Cut" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item3_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Paste" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item4_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Delete" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                    </WrapPanel>
+                </TabItem>
+                
+                <!-- Tools Tab -->
+                <TabItem Header="Tools" x:Name="ToolsTab">
+                    <WrapPanel Orientation="Horizontal">
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item5_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Extract" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item6_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Search" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item7_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Add files" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item8_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Add folder" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item9_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Add folder c" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5" Click="Defrag">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item10_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Defragment" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item11_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Compare" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                    </WrapPanel>
+                </TabItem>
+                
+                <!-- Settings Tab -->
+                <TabItem Header="Settings" x:Name="SettingsTab">
+                    <WrapPanel Orientation="Horizontal">
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item12_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Interface Lan" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item13_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Action list" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item17_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Key Manager" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item14_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="Associate pck" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Background="Transparent" BorderThickness="0" Margin="5" Click="SettingsClick">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item15_ImgData.png" Width="24" Height="24"/>
+                                <TextBlock Text="About" FontSize="10"/>
+                            </StackPanel>
+                        </Button>
+                    </WrapPanel>
+                </TabItem>
+            </TabControl>
+        </Grid>
         
         <!-- Path TextBox -->
         <TextBox DockPanel.Dock="Top" Text="{Binding ArchivePath, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" 
@@ -106,8 +205,10 @@
             <!-- Archive Content View (shown only when archives are loaded) -->
             <Grid Name="ArchiveContentGrid" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="220" MinWidth="150"/>
+                    <!-- Fixed minimum width with auto resize -->
+                    <ColumnDefinition Width="220" MinWidth="150" MaxWidth="350"/>
                     <ColumnDefinition Width="Auto"/>
+                    <!-- File list takes remaining space -->
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 
@@ -118,14 +219,14 @@
                     <!-- TreeView items will be added dynamically when an archive is loaded -->
                 </TreeView>
                 
-                <!-- GridSplitter -->
-                <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Center" VerticalAlignment="Stretch" 
-                            Background="{StaticResource BorderColor}"/>
+                <!-- GridSplitter - Allow user to adjust column widths -->
+                <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                              Background="{StaticResource BorderColor}" ResizeBehavior="PreviousAndNext"/>
                 
                 <!-- File View -->
                 <TabControl Grid.Column="2" Name="Archives" Margin="0" 
-                          Background="White" BorderBrush="#C0C0C0" BorderThickness="1" Padding="0"
-                          SelectionChanged="Archives_SelectionChanged">
+                           Background="White" BorderBrush="#C0C0C0" BorderThickness="1" Padding="0"
+                           SelectionChanged="Archives_SelectionChanged">
                     <!-- TabItems will be added dynamically when an archive is loaded -->
                 </TabControl>
             </Grid>

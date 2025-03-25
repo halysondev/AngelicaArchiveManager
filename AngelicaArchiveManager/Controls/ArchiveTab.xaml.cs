@@ -13,11 +13,37 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using static AngelicaArchiveManager.Core.Events;
+using System.Runtime.InteropServices;
+using Image = System.Drawing.Image;
 
 namespace AngelicaArchiveManager.Controls
 {
     public partial class ArchiveTab : TabItem, INotifyPropertyChanged
     {
+        // Add Windows API interop for system icons
+        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbFileInfo, uint uFlags);
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        private struct SHFILEINFO
+        {
+            public IntPtr hIcon;
+            public int iIcon;
+            public uint dwAttributes;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+            public string szDisplayName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
+            public string szTypeName;
+        }
+
+        private const uint SHGFI_ICON = 0x100;
+        private const uint SHGFI_SMALLICON = 0x1;
+        private const uint SHGFI_USEFILEATTRIBUTES = 0x10;
+        private const uint FILE_ATTRIBUTE_NORMAL = 0x80;
+
+        // Dictionary to cache file icons
+        private Dictionary<string, Image> _iconCache = new Dictionary<string, Image>();
+
         private DataGridView Table { get; set; }
         public ArchiveManager Archive { get; set; }
         private FSWatcher Watcher { get; set; }
@@ -183,13 +209,94 @@ namespace AngelicaArchiveManager.Controls
             {
                 foreach (var f in _Files[Path])
                 {
-                    Table.Rows[i].Cells[0].Value = Properties.Resources.file;
-                    Table.Rows[i].Cells[1].Value = System.IO.Path.GetFileName(f.Path);
+                    string fileName = System.IO.Path.GetFileName(f.Path);
+                    string extension = System.IO.Path.GetExtension(fileName).ToLower();
+                    
+                    // Get appropriate icon for the file type
+                    Image icon = GetFileIcon(extension);
+                    
+                    Table.Rows[i].Cells[0].Value = icon;
+                    Table.Rows[i].Cells[1].Value = fileName;
                     Table.Rows[i].Cells[2].Value = FormatFileSize(f.Size);
                     Table.Rows[i].Cells[3].Value = FormatFileSize(f.CSize);
                     ++i;
                 }
             }
+            
+            // Resize columns after loading data
+            ResizeColumns();
+        }
+        
+        private Image GetFileIcon(string extension)
+        {
+            // Check if icon is already cached
+            if (_iconCache.ContainsKey(extension))
+                return _iconCache[extension];
+                
+            try
+            {
+                // Create a temporary file with the extension to get its icon
+                string tempFile = System.IO.Path.GetTempPath() + "temp" + extension;
+                
+                // If we don't want to create an actual file, we can use SHGetFileInfo with SHGFI_USEFILEATTRIBUTES
+                SHFILEINFO shfi = new SHFILEINFO();
+                IntPtr hImgSmall = SHGetFileInfo(tempFile, FILE_ATTRIBUTE_NORMAL, ref shfi, (uint)Marshal.SizeOf(shfi), 
+                                            SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES);
+                
+                // Get the icon from the handle
+                if (shfi.hIcon != IntPtr.Zero)
+                {
+                    Icon icon = Icon.FromHandle(shfi.hIcon);
+                    Image img = icon.ToBitmap();
+                    
+                    // Free the icon handle
+                    User32.DestroyIcon(shfi.hIcon);
+                    
+                    // Cache the icon
+                    _iconCache[extension] = img;
+                    return img;
+                }
+            }
+            catch (Exception)
+            {
+                // Fall back to custom extension-based icons
+                return GetCustomFileIcon(extension);
+            }
+            
+            // If shell icon extraction fails, use custom icons
+            return GetCustomFileIcon(extension);
+        }
+
+        private Image GetCustomFileIcon(string extension)
+        {
+            // Simplified version that uses custom icons based on file extension
+            switch (extension.ToLower())
+            {
+                case ".txt":
+                case ".str":
+                case ".cmd":
+                case ".err":
+                case ".desc":
+                case ".prop":
+                    return Properties.Resources.file; // Use text file icon if available
+                    
+                case ".cfg":
+                case ".ini":
+                    return Properties.Resources.file; // Use config file icon if available
+                    
+                case ".data":
+                    return Properties.Resources.file; // Use data file icon if available
+                    
+                default:
+                    return Properties.Resources.file; // Default file icon
+            }
+        }
+
+        // Add User32 P/Invoke definition for cleanup
+        private static class User32
+        {
+            [DllImport("user32.dll")]
+            public static extern bool DestroyIcon(IntPtr handle);
         }
         
         // Helper method to format file sizes to match the reference application
@@ -419,19 +526,32 @@ namespace AngelicaArchiveManager.Controls
                 GridColor = Color.LightGray,
                 CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
                 BorderStyle = BorderStyle.None,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None,
+                
+                // Make the DataGridView fill its container
+                Dock = DockStyle.Fill,
+                
+                // Enable scrolling
+                AutoGenerateColumns = false
             };
             
+            // Enable double buffering for smoother scrolling (requires reflection)
+            typeof(DataGridView).GetProperty("DoubleBuffered", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .SetValue(Table, true, null);
+            
             // Configure the selection colors to match the reference application
-            Table.DefaultCellStyle.SelectionBackColor = Color.FromArgb(204, 232, 255); // Light blue selection color
-            Table.DefaultCellStyle.SelectionForeColor = Color.Black; // Keep text black when selected
+            Table.DefaultCellStyle.SelectionBackColor = Color.FromArgb(204, 232, 255);
+            Table.DefaultCellStyle.SelectionForeColor = Color.Black;
             
             var column1 = new DataGridViewImageColumn
             {
                 Name = "Icon",
                 Width = 24,
                 HeaderText = "",
-                ReadOnly = true
+                ReadOnly = true,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
+                MinimumWidth = 24
             };
             var column2 = new DataGridViewTextBoxColumn
             {
@@ -439,7 +559,10 @@ namespace AngelicaArchiveManager.Controls
                 Width = 250,
                 HeaderText = "File name",
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                MinimumWidth = 150,
+                FillWeight = 70
             };
             var column3 = new DataGridViewTextBoxColumn
             {
@@ -448,22 +571,31 @@ namespace AngelicaArchiveManager.Controls
                 HeaderText = "Size",
                 ReadOnly = true,
                 DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight },
-                SortMode = DataGridViewColumnSortMode.Automatic
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells,
+                MinimumWidth = 80,
+                FillWeight = 15
             };
             var column4 = new DataGridViewTextBoxColumn
             {
                 Name = "Compressed",
-                Width = 100,
+                Width = 120,
                 HeaderText = "Compressed size",
                 ReadOnly = true,
                 DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight },
-                SortMode = DataGridViewColumnSortMode.Automatic
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells,
+                MinimumWidth = 100,
+                FillWeight = 15
             };
 
             Table.Columns.Add(column1);
             Table.Columns.Add(column2);
             Table.Columns.Add(column3);
             Table.Columns.Add(column4);
+
+            // Add resize handler to adjust columns when parent is resized
+            Table.ClientSizeChanged += Table_ClientSizeChanged;
 
             Table.CellDoubleClick += CellDoubleClick;
             Table.MouseDown += MouseDown;
@@ -473,6 +605,34 @@ namespace AngelicaArchiveManager.Controls
             Table.DragEnter += DragEnter;
             Table.DragDrop += DragDrop;
             Table.AllowDrop = true;
+        }
+
+        private void Table_ClientSizeChanged(object sender, EventArgs e)
+        {
+            ResizeColumns();
+        }
+
+        private void ResizeColumns()
+        {
+            if (Table.Columns.Count < 4) return;
+            
+            // Get table width excluding scrollbar width
+            int scrollWidth = SystemInformation.VerticalScrollBarWidth;
+            int tableWidth = Table.ClientSize.Width - scrollWidth;
+            
+            // Set fixed widths for the icon, name and size columns
+            int iconWidth = 24;
+            int nameWidth = (int)(tableWidth * 0.6); // 60% for name
+            int sizeWidth = 80;
+            
+            // Calculate the remaining width for the date column
+            int dateWidth = tableWidth - iconWidth - nameWidth - sizeWidth;
+            
+            // Apply the calculated widths
+            Table.Columns[0].Width = iconWidth;              // Icon column
+            Table.Columns[1].Width = nameWidth;              // Name column
+            Table.Columns[2].Width = sizeWidth;              // Size column
+            Table.Columns[3].Width = Math.Max(100, dateWidth); // Date column, minimum 100px
         }
         #endregion
 
@@ -525,6 +685,18 @@ namespace AngelicaArchiveManager.Controls
                 {
                     FoldersUpdated?.Invoke(_Folders);
                 }));
+            }
+        }
+
+        /// <summary>
+        /// Called from MainWindow when the window is resized
+        /// </summary>
+        public void HandleResize()
+        {
+            // Call ResizeColumns on the DataGridView to adjust column widths
+            if (Table != null && Table.Columns.Count >= 4)
+            {
+                ResizeColumns();
             }
         }
     }
