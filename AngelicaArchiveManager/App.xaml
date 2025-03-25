@@ -2,11 +2,89 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:AngelicaArchiveManager"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <!-- Theme Colors - Light Explorer Theme -->
-        <SolidColorBrush x:Key="PrimaryBackgroundColor" Color="#F0F0F0"/>
-        <SolidColorBrush x:Key="SecondaryBackgroundColor" Color="#FFFFFF"/>
+        <!-- PCKInterface Localization Strings -->
+        <sys:String x:Key="miFileCaption">File</sys:String>
+        <sys:String x:Key="miOpenCaption">Open PCK as</sys:String>
+        <sys:String x:Key="miRecentCaption">Recent opened</sys:String>
+        <sys:String x:Key="miAddFilesCaption">Add files</sys:String>
+        <sys:String x:Key="miAddDirCaption">Add directory</sys:String>
+        <sys:String x:Key="miAddDirContentsCaption">Add directory content</sys:String>
+        <sys:String x:Key="miExitCaption">Exit</sys:String>
+        <sys:String x:Key="miAdditionalCaption">Extra</sys:String>
+        <sys:String x:Key="miEditCaption">Edit</sys:String>
+        <sys:String x:Key="miInterfaceLang">Interface language</sys:String>
+        <sys:String x:Key="miSearchCaption">Search</sys:String>
+        <sys:String x:Key="miDefragCaption">Defragment</sys:String>
+        <sys:String x:Key="miCompareCaption">Compare PCK with current</sys:String>
+        <sys:String x:Key="miSettimgsCaption">Settings</sys:String>
+        <sys:String x:Key="miAboutCaption">About</sys:String>
+        <sys:String x:Key="miNewVersion">New version is avaliable</sys:String>
+        <sys:String x:Key="miExtractCaption">Extract</sys:String>
+        <sys:String x:Key="miRenameCaption">Rename</sys:String>
+        <sys:String x:Key="miCopyPathCaption">Copy path</sys:String>
+        <sys:String x:Key="miCopyCaption">Copy</sys:String>
+        <sys:String x:Key="miCutCaption">Cut</sys:String>
+        <sys:String x:Key="miPasteCaption">Paste</sys:String>
+        <sys:String x:Key="miRemoveCaption">Delete</sys:String>
+        <sys:String x:Key="miSelectAllCaption">Select all</sys:String>
+        
+        <!-- Form captions and labels -->
+        <sys:String x:Key="frmSettingsCaption">Action list</sys:String>
+        <sys:String x:Key="frmKeyCaption">Custom keypair edit</sys:String>
+        <sys:String x:Key="lblNameCaption">Name</sys:String>
+        <sys:String x:Key="lblKey1Caption">Key #1</sys:String>
+        <sys:String x:Key="lblKey2Caption">Key #2</sys:String>
+        <sys:String x:Key="lblKey3Caption">Key #3</sys:String>
+        <sys:String x:Key="lblSign1Caption">Sign #1</sys:String>
+        <sys:String x:Key="lblSign2Caption">Sign #2</sys:String>
+        <sys:String x:Key="lblSign3Caption">Sign #3</sys:String>
+        <sys:String x:Key="lblSign4Caption">Sign #4</sys:String>
+        <sys:String x:Key="sbSaveSettings">Save settings</sys:String>
+        <sys:String x:Key="sbOKCaption">OK</sys:String>
+        <sys:String x:Key="sbCancelCaption">Cancel</sys:String>
+        <sys:String x:Key="cbAssociateCaption">Associate PCK-files with PCK Module</sys:String>
+        
+        <!-- Metro UI strings -->
+        <sys:String x:Key="miMetroFile">File</sys:String>
+        <sys:String x:Key="miMetroOpen">Open</sys:String>
+        <sys:String x:Key="miMetroExit">Exit</sys:String>
+        <sys:String x:Key="miMetroRecent">Recently opened files</sys:String>
+        <sys:String x:Key="miMetroGameMode">Choose game type from list below or click "Open" for automatic type definition</sys:String>
+        <sys:String x:Key="miMetroEdit">Edit</sys:String>
+        <sys:String x:Key="miMetroRename">Rename&#x0a;(F2)</sys:String>
+        <sys:String x:Key="miMetroSelectAll">Select all&#x0a;(Ctrl+A)</sys:String>
+        <sys:String x:Key="miMetroCopy">Copy&#x0a;(Ctrl+C)</sys:String>
+        <sys:String x:Key="miMetroCut">Cut&#x0a;(Ctrl+X)</sys:String>
+        <sys:String x:Key="miMetroPaste">Paste&#x0a;(Ctrl+V)</sys:String>
+        <sys:String x:Key="miMetroRemove">Delete&#x0a;(Del)</sys:String>
+        <sys:String x:Key="miMetroTools">Tools</sys:String>
+        <sys:String x:Key="miMetroExtract">Extract&#x0a;(Shift+Ctrl+E)</sys:String>
+        <sys:String x:Key="miMetroSearch">Search&#x0a;(Ctrl+F)</sys:String>
+        <sys:String x:Key="miMetroAddFiles">Add files&#x0a;(Alt+A)</sys:String>
+        <sys:String x:Key="miMetroAddDir">Add folder&#x0a;(Alt+D)</sys:String>
+        <sys:String x:Key="miMetroAddDirContents">Add folder&#x0a;contents (Alt+C)</sys:String>
+        <sys:String x:Key="miMetroDefrag">Defragment&#x0a;(Ctrl+D)</sys:String>
+        <sys:String x:Key="miMetroCompare">Compare&#x0a;(Ctrl+E)</sys:String>
+        <sys:String x:Key="miMetroSettings">Settings</sys:String>
+        <sys:String x:Key="miMetroLang">Interface&#x0a;language</sys:String>
+        <sys:String x:Key="miMetroActions">Action&#x0a;list</sys:String>
+        <sys:String x:Key="miMetroKeyEdit">Key&#x0a;Manager</sys:String>
+        <sys:String x:Key="miMetroAssociate">Associate&#x0a;PCK-files</sys:String>
+        <sys:String x:Key="miMetroAbout">About</sys:String>
+        
+        <!-- Status and Dialog Messages -->
+        <sys:String x:Key="strFileCount">Files: {0}</sys:String>
+        <sys:String x:Key="strFragmented">Fragmented {0} B</sys:String>
+        <sys:String x:Key="strNotFragmented">No fragmented blocks</sys:String>
+        <sys:String x:Key="strFileNotFound">File not found</sys:String>
+        <sys:String x:Key="strNoArchiveLoaded">No archive loaded</sys:String>
+        
+        <!-- Theme Colors - Based on design_reference Delphi style -->
+        <SolidColorBrush x:Key="PrimaryBackgroundColor" Color="White"/>
+        <SolidColorBrush x:Key="SecondaryBackgroundColor" Color="White"/>
         <SolidColorBrush x:Key="PrimaryForegroundColor" Color="#000000"/>
         <SolidColorBrush x:Key="SecondaryForegroundColor" Color="#333333"/>
         <SolidColorBrush x:Key="AccentColor" Color="#D3D3D3"/>
@@ -14,6 +92,8 @@
         <SolidColorBrush x:Key="ListItemHighlightColor" Color="#CCE8FF"/>
         <SolidColorBrush x:Key="ToolbarBackgroundColor" Color="#F0F0F0"/>
         <SolidColorBrush x:Key="TabHeaderColor" Color="#E1E1E1"/>
+        <SolidColorBrush x:Key="TabHeaderSelectedColor" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TabHeaderHoverColor" Color="#F5F5F5"/>
 
         <!-- Button Style -->
         <Style x:Key="ExplorerButton" TargetType="Button">
@@ -23,6 +103,8 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="5,2"/>
             <Setter Property="Margin" Value="0"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -51,6 +133,8 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="3"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
 
         <!-- TabControl Style -->
@@ -59,31 +143,45 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="0"/>
+            <Setter Property="TabStripPlacement" Value="Top"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
 
-        <!-- TabItem Style -->
+        <!-- TabItem Style - Updated to match Delphi style more closely -->
         <Style x:Key="ExplorerTabItem" TargetType="TabItem">
-            <Setter Property="Background" Value="{StaticResource TabHeaderColor}"/>
+            <Setter Property="Background" Value="{StaticResource ToolbarBackgroundColor}"/>
             <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1,1,1,0"/>
-            <Setter Property="Padding" Value="5,2"/>
-            <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="1,0,0,0"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Height" Value="21"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
-                        <Border Name="Border" 
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
-                            <ContentPresenter ContentSource="Header" Margin="{TemplateBinding Padding}"/>
-                        </Border>
+                        <Grid>
+                            <Border Name="Border" 
+                                  Background="{TemplateBinding Background}"
+                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  CornerRadius="3,3,0,0">
+                                <ContentPresenter x:Name="ContentSite"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"
+                                              ContentSource="Header"
+                                              Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{StaticResource SecondaryBackgroundColor}"/>
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource TabHeaderSelectedColor}"/>
+                                <Setter TargetName="Border" Property="BorderThickness" Value="1,1,1,0"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource TabHeaderHoverColor}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -99,6 +197,8 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
 
         <!-- TreeView Style -->
@@ -107,11 +207,17 @@
             <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
 
         <!-- TreeViewItem Style -->
         <Style x:Key="ExplorerTreeViewItem" TargetType="TreeViewItem">
             <Setter Property="IsExpanded" Value="True"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Padding" Value="2,1"/>
         </Style>
 
         <!-- ComboBox Style -->
@@ -120,6 +226,9 @@
             <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Height" Value="22"/>
         </Style>
 
         <!-- ToolBar Style -->
@@ -127,6 +236,8 @@
             <Setter Property="Background" Value="{StaticResource ToolbarBackgroundColor}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
 
         <!-- DataGrid Style -->
@@ -143,6 +254,8 @@
             <Setter Property="HeadersVisibility" Value="Column"/>
             <Setter Property="IsReadOnly" Value="True"/>
             <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
 
         <!-- Window Style -->
@@ -152,12 +265,16 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="WindowStyle" Value="SingleBorderWindow"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
         
         <!-- Label Style -->
         <Style x:Key="ExplorerLabel" TargetType="Label">
             <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
             <Setter Property="Padding" Value="0,3"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
         
         <!-- Status Bar Style -->
@@ -166,6 +283,48 @@
             <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundColor}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="0,1,0,0"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Height" Value="22"/>
+        </Style>
+
+        <!-- TreeViewItem TextBlock Style -->
+        <Style x:Key="TreeViewItemText" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Menu/ToolBar Button Style - Updated to match Delphi toolbar buttons -->
+        <Style x:Key="MenuButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Width" Value="64"/>
+            <Setter Property="Height" Value="74"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="Border" 
+                               Background="{TemplateBinding Background}"
+                               BorderBrush="{TemplateBinding BorderBrush}"
+                               BorderThickness="{TemplateBinding BorderThickness}"
+                               CornerRadius="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#E0E0E0"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#D0D0D0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Close Button Style (Keep original for tab closing) -->

@@ -5,11 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AngelicaArchiveManager"
         mc:Ignorable="d"
-        Title="Settings" Height="330" Width="400" 
-        Background="{StaticResource PrimaryBackgroundColor}"
-        Foreground="{StaticResource PrimaryForegroundColor}"
-        ResizeMode="CanResize" MinHeight="330" MinWidth="400"
-        Style="{StaticResource ExplorerWindow}">
+        Title="{StaticResource frmSettingsCaption}" Height="330" Width="400" 
+        Style="{StaticResource ExplorerWindow}"
+        MinHeight="330" MinWidth="400">
     <Window.Resources>
         <local:StringFormatToIntConverter x:Key="StringFormatToIntConverter"/>
     </Window.Resources>
@@ -32,7 +30,7 @@
                  Margin="0,0,10,0">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Foreground="{StaticResource PrimaryForegroundColor}">
+                    <TextBlock Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource TreeViewItemText}">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}">
                                 <Binding Path="Name" />
@@ -44,10 +42,10 @@
             <ListBox.ContextMenu>
                 <ContextMenu Background="{StaticResource SecondaryBackgroundColor}"
                              BorderBrush="{StaticResource BorderColor}">
-                    <MenuItem Header="Add" Click="AddClick" 
+                    <MenuItem Header="{StaticResource miMetroAddFiles}" Click="AddClick" 
                               Foreground="{StaticResource PrimaryForegroundColor}"
                               Background="{StaticResource SecondaryBackgroundColor}"/>
-                    <MenuItem Header="Remove" Click="RemoveClick" 
+                    <MenuItem Header="{StaticResource miRemoveCaption}" Click="RemoveClick" 
                               Foreground="{StaticResource PrimaryForegroundColor}"
                               Background="{StaticResource SecondaryBackgroundColor}"/>
                 </ContextMenu>
@@ -55,38 +53,37 @@
         </ListBox>
 
         <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,0">
-            <Label Content="Name" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <Label Content="{StaticResource lblNameCaption}" Style="{StaticResource ExplorerLabel}"/>
             <TextBox Text="{Binding Key.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
             
-            <Label Content="KEY1" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <Label Content="{StaticResource lblKey1Caption}" Style="{StaticResource ExplorerLabel}"/>
             <TextBox Text="{Binding Key.KEY_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
             
-            <Label Content="KEY2" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <Label Content="{StaticResource lblKey2Caption}" Style="{StaticResource ExplorerLabel}"/>
             <TextBox Text="{Binding Key.KEY_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
             
-            <Label Content="ASIG1" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <Label Content="{StaticResource lblSign1Caption}" Style="{StaticResource ExplorerLabel}"/>
             <TextBox Text="{Binding Key.ASIG_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
             
-            <Label Content="ASIG2" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <Label Content="{StaticResource lblSign2Caption}" Style="{StaticResource ExplorerLabel}"/>
             <TextBox Text="{Binding Key.ASIG_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
             
-            <Label Content="FSIG1" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <Label Content="{StaticResource lblSign3Caption}" Style="{StaticResource ExplorerLabel}"/>
             <TextBox Text="{Binding Key.FSIG_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
             
-            <Label Content="FSIG2" Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource ExplorerLabel}"/>
+            <Label Content="{StaticResource lblSign4Caption}" Style="{StaticResource ExplorerLabel}"/>
             <TextBox Text="{Binding Key.FSIG_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource ExplorerTextBox}"/>
         </StackPanel>
         
         <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,15,0,5">
-            <Label Content="Compression level:" Foreground="{StaticResource PrimaryForegroundColor}" 
-                   Style="{StaticResource ExplorerLabel}" VerticalAlignment="Center"/>
+            <Label Content="Compression level:" Style="{StaticResource ExplorerLabel}" VerticalAlignment="Center"/>
             <ComboBox Name="Compression" Width="60" Style="{StaticResource ExplorerComboBox}" Margin="5,0,0,0">
                 <ComboBoxItem Content="0"/>
                 <ComboBoxItem Content="1"/>
@@ -102,8 +99,7 @@
         </StackPanel>
         
         <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,5,0,15">
-            <Label Content="Language:" Foreground="{StaticResource PrimaryForegroundColor}" 
-                   Style="{StaticResource ExplorerLabel}" VerticalAlignment="Center"/>
+            <Label Content="Language:" Style="{StaticResource ExplorerLabel}" VerticalAlignment="Center"/>
             <ComboBox x:Name="Language" Width="250" Style="{StaticResource ExplorerComboBox}" Margin="5,0,0,0">
                 <ComboBoxItem Content="English"/>
                 <ComboBoxItem Content="Russian"/>
@@ -112,7 +108,7 @@
         </StackPanel>
         
         <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" 
-                Content="Save" Click="SaveClick" 
+                Content="{StaticResource sbSaveSettings}" Click="SaveClick" 
                 Style="{StaticResource ExplorerButton}"
                 Height="30"/>
     </Grid>

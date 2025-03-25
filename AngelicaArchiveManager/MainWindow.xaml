@@ -5,178 +5,181 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AngelicaArchiveManager"
         mc:Ignorable="d"
-        Title="AngelicaArchiveManager v1.0" Height="600" Width="800" 
+        Title="Angelica File Manager" Height="557" Width="800" 
         ResizeMode="CanResize" AllowDrop="True" Drop="Window_Drop"
-        Background="{StaticResource PrimaryBackgroundColor}"
-        Foreground="{StaticResource PrimaryForegroundColor}"
-        MinWidth="600" MinHeight="450">
+        Background="White"
+        Foreground="Black"
+        FontFamily="Courier New" FontSize="11"
+        MinWidth="800" MinHeight="557"
+        Style="{StaticResource ExplorerWindow}">
     <DockPanel LastChildFill="True">
         <!-- Menu Bar -->
         <Grid DockPanel.Dock="Top">
             <!-- Menu Tabs -->
-            <TabControl x:Name="MainMenuTabs" Background="{StaticResource ToolbarBackgroundColor}" BorderThickness="0,0,0,1" BorderBrush="{StaticResource BorderColor}">
+            <TabControl x:Name="MainMenuTabs" Background="#F0F0F0" BorderThickness="0,0,0,1" BorderBrush="#C0C0C0" 
+                        TabStripPlacement="Top">
                 <TabControl.Resources>
-                    <Style TargetType="TabItem">
+                    <Style TargetType="TabItem" BasedOn="{StaticResource ExplorerTabItem}">
                         <Setter Property="Background" Value="Transparent"/>
                         <Setter Property="BorderThickness" Value="0"/>
                         <Setter Property="Padding" Value="10,2"/>
                         <Setter Property="Margin" Value="0"/>
                     </Style>
                 </TabControl.Resources>
-                
+
                 <!-- File Tab -->
-                <TabItem Header="File" x:Name="FileTab">
-                    <WrapPanel Orientation="Horizontal">
-                        <Button Background="Transparent" BorderThickness="0" Margin="5" Click="OpenFile">
+                <TabItem Header="{StaticResource miFileCaption}" x:Name="FileTab">
+                    <WrapPanel Orientation="Horizontal" Margin="2">
+                        <Button Style="{StaticResource MenuButtonStyle}" Click="OpenFile" Width="97">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/imgmenu/Item0_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Open" FontSize="10"/>
+                                <Image Source="/Resources/imgmenu/Item0_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miOpenCaption}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}"  Width="97">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/imgmenu/Item1_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Edit" FontSize="10"/>
+                                <Image Source="/Resources/imgmenu/Item1_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miEditCaption}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New"/>
                             </StackPanel>
                         </Button>
                     </WrapPanel>
                 </TabItem>
-                
+
                 <!-- Edit Tab -->
-                <TabItem Header="Edit" x:Name="EditTab">
-                    <WrapPanel Orientation="Horizontal">
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                <TabItem Header="{StaticResource miMetroEdit}" x:Name="EditTab">
+                    <WrapPanel Orientation="Horizontal" Margin="2">
+                        <Button Style="{StaticResource MenuButtonStyle}" Width="69" >
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item0_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Rename" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item0_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroRename}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}" Width="79">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item16_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Select all" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item16_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroSelectAll}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}" Width="62">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item1_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Copy" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item1_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroCopy}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}" Width="57">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item2_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Cut" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item2_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroCut}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item3_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Paste" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item3_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroPaste}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item4_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Delete" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item4_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroRemove}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </WrapPanel>
                 </TabItem>
-                
+
                 <!-- Tools Tab -->
-                <TabItem Header="Tools" x:Name="ToolsTab">
-                    <WrapPanel Orientation="Horizontal">
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                <TabItem Header="{StaticResource miMetroTools}" x:Name="ToolsTab">
+                    <WrapPanel Orientation="Horizontal" Margin="2">
+                        <Button Style="{StaticResource MenuButtonStyle}" Width="74">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item5_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Extract" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item5_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroExtract}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item6_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Search" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item6_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroSearch}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item7_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Add files" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item7_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroAddFiles}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item8_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Add folder" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item8_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroAddDir}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item9_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Add folder c" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item9_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroAddDirContents}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5" Click="Defrag">
+                        <Button Style="{StaticResource MenuButtonStyle}" Click="Defrag" Width="74">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item10_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Defragment" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item10_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroDefrag}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item11_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Compare" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item11_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroCompare}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </WrapPanel>
                 </TabItem>
-                
+
                 <!-- Settings Tab -->
-                <TabItem Header="Settings" x:Name="SettingsTab">
-                    <WrapPanel Orientation="Horizontal">
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                <TabItem Header="{StaticResource miSettimgsCaption}" x:Name="SettingsTab">
+                    <WrapPanel Orientation="Horizontal" Margin="2">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item12_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Interface Lan" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item12_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroLang}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item13_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Action list" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item13_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroActions}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item17_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Key Manager" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item17_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroKeyEdit}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item14_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="Associate pck" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item14_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroAssociate}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Background="Transparent" BorderThickness="0" Margin="5" Click="SettingsClick">
+                        <Button Style="{StaticResource MenuButtonStyle}" Click="SettingsClick">
                             <StackPanel Orientation="Vertical">
-                                <Image Source="/Resources/32x32/Item15_ImgData.png" Width="24" Height="24"/>
-                                <TextBlock Text="About" FontSize="10"/>
+                                <Image Source="/Resources/32x32/Item15_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="{StaticResource miMetroAbout}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New"/>
                             </StackPanel>
                         </Button>
                     </WrapPanel>
                 </TabItem>
             </TabControl>
         </Grid>
-        
-        <!-- Path TextBox -->
+
+        <!-- Path TextBox - position and size adjusted to match design_reference -->
         <TextBox DockPanel.Dock="Top" Text="{Binding ArchivePath, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" 
-                 KeyDown="PathEnter" Margin="5,5,5,0" Background="White" BorderBrush="#C0C0C0"/>
-        
+                 KeyDown="PathEnter" Margin="2,2,2,2" Background="White" BorderBrush="#C0C0C0"
+                 Style="{StaticResource ExplorerTextBox}" Height="22"/>
+
         <!-- Status Bar -->
-        <StatusBar DockPanel.Dock="Bottom" Background="{StaticResource ToolbarBackgroundColor}" 
-                  BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Height="22">
+        <StatusBar DockPanel.Dock="Bottom" Style="{StaticResource ExplorerStatusBar}">
             <StatusBarItem>
                 <TextBlock Name="FileCount" Text="0"/>
             </StatusBarItem>
@@ -185,48 +188,54 @@
                 <TextBlock>Files: <Run Name="FragmentCount">0</Run></TextBlock>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
-                <TextBlock Name="CurrentPath">No archive loaded</TextBlock>
+                <TextBlock Name="CurrentPath" Text="{StaticResource strNoArchiveLoaded}"/>
             </StatusBarItem>
         </StatusBar>
-        
+
         <!-- Main Content -->
-        <Grid>
+        <Grid Margin="0">
             <!-- No Archive Loaded Message -->
             <Grid Name="NoArchiveGrid" Visibility="Visible">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Image Source="Resources/folder.png" Width="64" Height="64" Margin="0,0,0,20"/>
-                    <TextBlock Text="No Archive Loaded" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{StaticResource strNoArchiveLoaded}" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Open an archive file or drag and drop it here" FontSize="14" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                    <Button Content="Open Archive..." Click="OpenFile" Margin="0,20,0,0" Padding="15,5" 
-                           Background="White" BorderBrush="#C0C0C0"/>
+                    <Button Content="{StaticResource miOpenCaption}" Click="OpenFile" Margin="0,20,0,0" Padding="15,5" 
+                           Style="{StaticResource ExplorerButton}"/>
                 </StackPanel>
             </Grid>
 
             <!-- Archive Content View (shown only when archives are loaded) -->
-            <Grid Name="ArchiveContentGrid" Visibility="Collapsed">
+            <Grid Name="ArchiveContentGrid" Visibility="Collapsed" Margin="2,0,2,0">
                 <Grid.ColumnDefinitions>
-                    <!-- Fixed minimum width with auto resize -->
+                    <!-- File tree takes fixed width - match the -1 value from design_reference -->
                     <ColumnDefinition Width="220" MinWidth="150" MaxWidth="350"/>
                     <ColumnDefinition Width="Auto"/>
                     <!-- File list takes remaining space -->
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                
-                <!-- Directory Tree -->
+
+                <!-- Directory Tree - with Courier New font and styling from design_reference's pckPages -->
                 <TreeView Grid.Column="0" Margin="0" Name="DirectoryTree" 
-                         Background="White" BorderBrush="#C0C0C0"
-                         SelectedItemChanged="DirectoryTree_SelectedItemChanged">
+                         SelectedItemChanged="DirectoryTree_SelectedItemChanged"
+                         Style="{StaticResource ExplorerTreeView}">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource ExplorerTreeViewItem}"/>
+                    </TreeView.ItemContainerStyle>
                     <!-- TreeView items will be added dynamically when an archive is loaded -->
                 </TreeView>
-                
+
                 <!-- GridSplitter - Allow user to adjust column widths -->
                 <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                              Background="{StaticResource BorderColor}" ResizeBehavior="PreviousAndNext"/>
-                
-                <!-- File View -->
+                              Background="#C0C0C0" ResizeBehavior="PreviousAndNext"/>
+
+                <!-- File View - designed to match the pckPages in design_reference -->
                 <TabControl Grid.Column="2" Name="Archives" Margin="0" 
-                           Background="White" BorderBrush="#C0C0C0" BorderThickness="1" Padding="0"
-                           SelectionChanged="Archives_SelectionChanged">
+                           SelectionChanged="Archives_SelectionChanged"
+                           Style="{StaticResource ExplorerTabControl}">
+                    <TabControl.ItemContainerStyle>
+                        <Style TargetType="{x:Type TabItem}" BasedOn="{StaticResource ClosableTabItemStyle}"/>
+                    </TabControl.ItemContainerStyle>
                     <!-- TabItems will be added dynamically when an archive is loaded -->
                 </TabControl>
             </Grid>
