@@ -11,6 +11,7 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
         protected BufferedStream pck = null;
         protected BufferedStream pkx = null;
         protected BufferedStream pkx1 = null;
+        protected BufferedStream pkx2 = null;
         private string path = "";
         public long Position = 0;
         const uint PCK_MAX_SIZE = 2147483392;
@@ -33,6 +34,10 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                 if (File.Exists(path.Replace(".pck", ".pkx1")) && Path.GetExtension(path) != ".cup")
                 {
                     pkx1 = OpenStream(path.Replace(".pck", ".pkx1"), ro);
+                    if (File.Exists(path.Replace(".pck", ".pkx2")) && Path.GetExtension(path) != ".cup")
+                    {
+                        pkx2 = OpenStream(path.Replace(".pck", ".pkx2"), ro);
+                    }
                 }     
             }
         }
@@ -67,14 +72,18 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             {
                 pkx.Seek(Position - pck.Length, SeekOrigin.Begin);
             }
-            else
+            else if (Position <= pck.Length + pkx.Length + pkx1.Length)
             {
                 pkx1.Seek(Position - pck.Length - pkx.Length, SeekOrigin.Begin);
+            }
+            else
+            {
+                pkx2.Seek(Position - pck.Length - pkx.Length - pkx1.Length, SeekOrigin.Begin);
             }
             
         }
 
-        public long GetLenght() => pkx1 != null ? pck.Length + pkx.Length + pkx1.Length : pkx != null ? pck.Length + pkx.Length : pck.Length;
+        public long GetLenght() => pkx2 != null ? pck.Length + pkx.Length + pkx1.Length + pkx2.Length : pkx1 != null ? pck.Length + pkx.Length + pkx1.Length : pkx != null ? pck.Length + pkx.Length : pck.Length;
 
         public void Cut(long len)
         {
@@ -86,9 +95,13 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             {
                 pkx.SetLength(PCK_MAX_SIZE - len);
             }
-            else
+            else if(len < (long)PCK_MAX_SIZE + PKX_MAX_SIZE + PKX_MAX_SIZE)
             {
                 pkx1.SetLength((long)PCK_MAX_SIZE + PKX_MAX_SIZE - len);
+            }
+            else
+            {
+                pkx2.SetLength((long)PCK_MAX_SIZE + PKX_MAX_SIZE + PKX_MAX_SIZE - len);
             }
         }
 
@@ -109,6 +122,12 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                     pkx1.Seek(0, SeekOrigin.Begin);
                     BytesRead += pkx1.Read(array, BytesRead, count - BytesRead);
                 }
+                if (BytesRead < count && pkx2 != null)
+                {
+                    pkx2.Seek(0, SeekOrigin.Begin);
+                    BytesRead += pkx2.Read(array, BytesRead, count - BytesRead);
+                }
+
             }
             else if (Position < pck.Length + pkx.Length)
             {
@@ -118,10 +137,24 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                     pkx1.Seek(0, SeekOrigin.Begin);
                     BytesRead += pkx1.Read(array, BytesRead, count - BytesRead);
                 }
+                if (BytesRead < count && pkx2 != null)
+                {
+                    pkx2.Seek(0, SeekOrigin.Begin);
+                    BytesRead += pkx2.Read(array, BytesRead, count - BytesRead);
+                }
             }
-            else if (pkx1 != null)
+            else if (Position < pck.Length + pkx.Length + pkx1.Length)
             {
                 BytesRead = pkx1.Read(array, 0, count);
+                if (BytesRead < count && pkx2 != null)
+                {
+                    pkx2.Seek(0, SeekOrigin.Begin);
+                    BytesRead += pkx2.Read(array, BytesRead, count - BytesRead);
+                }
+            }
+            else if (pkx2 != null)
+            {
+                BytesRead = pkx2.Read(array, 0, count);
             }
             Position += count;
             return array;
@@ -130,6 +163,7 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
         public void WriteBytes(byte[] array)
         {
             long totalSize = (long)PCK_MAX_SIZE + PKX_MAX_SIZE;
+            long totalSize2 = (long)PCK_MAX_SIZE + PKX_MAX_SIZE + PKX_MAX_SIZE;
             long positionAfterWrite = Position + array.Length;
 
             if (positionAfterWrite < PCK_MAX_SIZE)
@@ -153,7 +187,7 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                     pkx.Write(array, pckWriteLength, array.Length - pckWriteLength);
                 }
             }
-            else
+            else if (positionAfterWrite < totalSize2)
             {
                 if (pkx1 == null)
                 {
@@ -187,6 +221,57 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                     }
                 }
             }
+            else
+            {
+                if (pkx2 == null)
+                {
+                    pkx2 = OpenStream(path.Replace(".pck", ".pkx2"), false);
+                }
+                if (Position >= totalSize2)
+                {
+                    pkx2.Write(array, 0, array.Length);
+                }
+                else
+                {
+                    if (pkx1 == null)
+                    {
+                        pkx1 = OpenStream(path.Replace(".pck", ".pkx1"), false);
+                    }
+                    if (pkx == null)
+                    {
+                        pkx = OpenStream(path.Replace(".pck", ".pkx"), false);
+                    }
+                    long pkx1PositionStart = totalSize;
+                    long pkx2PositionStart = totalSize2;
+                    int pkx1Bytes = (int)(pkx2PositionStart - Position);
+
+                    if (Position < pkx1PositionStart)
+                    {
+                        long pkxPositionStart = PCK_MAX_SIZE;
+                        int pkxBytes = (int)(pkx1PositionStart - Position);
+
+                        if (Position < pkxPositionStart)
+                        {
+                            int pckWriteLength = (int)(pkxPositionStart - Position);
+                            pck.Write(array, 0, pckWriteLength);
+                            pkx.Write(array, pckWriteLength, pkxBytes - pckWriteLength);
+                            pkx1.Write(array, pkxBytes, pkx1Bytes - pkxBytes);
+                            pkx2.Write(array, pkx1Bytes, array.Length - pkx1Bytes);
+                        }
+                        else
+                        {
+                            pkx.Write(array, 0, pkxBytes);
+                            pkx1.Write(array, pkxBytes, pkx1Bytes - pkxBytes);
+                            pkx2.Write(array, pkx1Bytes, array.Length - pkx1Bytes);
+                        }
+                    }
+                    else
+                    {
+                        pkx1.Write(array, 0, pkx1Bytes);
+                        pkx2.Write(array, pkx1Bytes, array.Length - pkx1Bytes);
+                    }
+                }
+            }
             Position += array.Length;
         }
 
@@ -210,6 +295,7 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             pck?.Close();
             pkx?.Close();
             pkx1?.Close();
+            pkx2?.Close();
         }
 
         public void Close()
@@ -217,6 +303,7 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             pck?.Close();
             pkx?.Close();
             pkx1?.Close();
+            pkx2?.Close();
         }
     }
 }

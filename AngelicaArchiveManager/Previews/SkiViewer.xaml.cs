@@ -2,6 +2,7 @@
 using AngelicaArchiveManager.Interfaces;
 using AngelicaArchiveManager.Previews.Models;
 using System.Windows;
+using System.Threading.Tasks;
 
 namespace AngelicaArchiveManager.Previews
 {
@@ -16,14 +17,15 @@ namespace AngelicaArchiveManager.Previews
             InitializeComponent();
         }
 
-        public void Prepare()
+        public async void Prepare()
         {
-            SkiReader Ski = new SkiReader(Manager.GetFile(File))
+            byte[] fileData = await Manager.GetFileAsync(File);
+            SkiReader Ski = new SkiReader(fileData)
             {
                 Manager = Manager,
                 ModelFilePath = Path
             };
-            Model.Content = Ski.GetModel();
+            Model.Content = await Ski.GetModelAsync();
         }
     }
 }

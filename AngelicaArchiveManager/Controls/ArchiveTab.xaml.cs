@@ -94,11 +94,11 @@ namespace AngelicaArchiveManager.Controls
 
         public void Initialize()
         {
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 try
                 {
-                    Archive.ReadFileTable();
+                    await Archive.ReadFileTableAsync();
                     Table.Invoke((MethodInvoker)delegate
                     {
                         Path = "\\";
@@ -177,11 +177,11 @@ namespace AngelicaArchiveManager.Controls
 
         public void Defrag()
         {
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 try
                 {
-                    Archive.Defrag();
+                    await Archive.DefragAsync();
                 }
                 catch (Exception ex)
                 {
@@ -272,10 +272,34 @@ namespace AngelicaArchiveManager.Controls
             Watcher = null;
             if (!e.FullPath.Contains(System.IO.Path.GetTempPath()))
             {
-                Task.Factory.StartNew(() =>
+                Task.Factory.StartNew(async () =>
                 {
                     string dir = System.IO.Path.GetDirectoryName(e.FullPath);
-                    File.Delete(e.FullPath);
+                    
+                    // Add retry logic with delay to handle file lock issues
+                    bool deleted = false;
+                    int maxRetries = 5;
+                    int retryCount = 0;
+                    
+                    while (!deleted && retryCount < maxRetries)
+                    {
+                        try
+                        {
+                            File.Delete(e.FullPath);
+                            deleted = true;
+                        }
+                        catch (IOException)
+                        {
+                            // Wait before retrying
+                            await Task.Delay(100 * (retryCount + 1));
+                            retryCount++;
+                            
+                            // If we've reached max retries, just continue without deleting
+                            if (retryCount >= maxRetries)
+                                break;
+                        }
+                    }
+                    
                     List<IArchiveEntry> files = new List<IArchiveEntry>();
                     foreach (DataGridViewRow row in Table.SelectedRows)
                     {
@@ -290,9 +314,29 @@ namespace AngelicaArchiveManager.Controls
                         }
                     }
                     if (files.Count > 0)
-                        Archive.UnpackFiles(Path, files, dir);
+                        await Archive.UnpackFilesAsync(Path, files, dir);
                 });
             }
+        }
+
+        // New method to extract files asynchronously
+        private async void ExtractFilesAsync(string dir)
+        {
+            List<IArchiveEntry> files = new List<IArchiveEntry>();
+            foreach (DataGridViewRow row in Table.SelectedRows)
+            {
+                if (IsDirectory(row.Index))
+                {
+                    string path = System.IO.Path.Combine(Path, row.Cells[1].Value.ToString()).RemoveFirstSeparator();
+                    files.AddRange(Archive.Files.Where(x => x.Path.StartsWith(path + "\\")));
+                }
+                else
+                {
+                    files.Add(Archive.Files.Where(x => x.Path == (Path + row.Cells[1].Value.ToString()).RemoveFirstSeparator()).First());
+                }
+            }
+            if (files.Count > 0)
+                await Archive.UnpackFilesAsync(Path, files, dir);
         }
 
         private new void MouseUp(object sender, MouseEventArgs e)

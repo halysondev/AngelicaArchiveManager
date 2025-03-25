@@ -9,6 +9,8 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
+using AngelicaArchiveManager.Previews.Models.Extensions;
+using System.Threading.Tasks;
 
 namespace AngelicaArchiveManager.Previews.Models
 {
@@ -173,6 +175,17 @@ namespace AngelicaArchiveManager.Previews.Models
 			return HelixToolkit.Wpf.Materials.Gray;
 		}
 
+        private async Task<Material> GetTextureAsync(string name)
+        {
+            var texture = Manager.Files.Where(x => x.Path.StartsWith(ModelFilePath.RemoveFirstSeparator()) && x.Path.EndsWith(name));
+            if (texture.Count() > 0)
+            {
+                byte[] textureData = await Manager.GetFileAsync(texture.First());
+                return MaterialHelper.CreateImageMaterial(textureData.ToImage(), 1.0);
+            }
+            return HelixToolkit.Wpf.Materials.Gray;
+        }
+
 		public Model3DGroup GetModel()
 		{
 			Model3DGroup model3DGroup = new Model3DGroup();
@@ -211,6 +224,56 @@ namespace AngelicaArchiveManager.Previews.Models
 				if (this.TexturesCount > 0u && (long)meshObject.TexIndex < (long)((ulong)this.TexturesCount))
 				{
 					material = GetTexture(this.Textures[meshObject.TexIndex]);
+				}
+				GeometryModel3D value = new GeometryModel3D
+				{
+					Geometry = geometry,
+					Material = material,
+					BackMaterial = material
+				};
+				model3DGroup.Children.Add(value);
+			}
+			return model3DGroup;
+		}
+        
+        public async Task<Model3DGroup> GetModelAsync()
+		{
+			Model3DGroup model3DGroup = new Model3DGroup();
+			MeshObject[] @object = this.Object;
+			for (int i = 0; i < @object.Length; i++)
+			{
+				MeshObject meshObject = @object[i];
+				List<Point3D> list = new List<Point3D>();
+				List<Vector3D> list2 = new List<Vector3D>();
+				List<Point> list3 = new List<Point>();
+				Vertex[] vertexes = meshObject.Vertexes;
+				for (int j = 0; j < vertexes.Length; j++)
+				{
+					Vertex vertex = vertexes[j];
+					list.Add(vertex.Position);
+					list2.Add(vertex.Normal);
+					list3.Add(vertex.UVCoords);
+				}
+				List<int> list4 = new List<int>();
+				Face[] faces = meshObject.Faces;
+				for (int k = 0; k < faces.Length; k++)
+				{
+					Face face = faces[k];
+					list4.Add((int)face.VertIndexs[0]);
+					list4.Add((int)face.VertIndexs[1]);
+					list4.Add((int)face.VertIndexs[2]);
+				}
+				MeshGeometry3D geometry = new MeshGeometry3D
+				{
+					Normals = new Vector3DCollection(list2),
+					Positions = new Point3DCollection(list),
+					TextureCoordinates = new PointCollection(list3),
+					TriangleIndices = new Int32Collection(list4)
+				};
+				Material material = HelixToolkit.Wpf.Materials.Gray;
+				if (this.TexturesCount > 0u && (long)meshObject.TexIndex < (long)((ulong)this.TexturesCount))
+				{
+					material = await GetTextureAsync(this.Textures[meshObject.TexIndex]);
 				}
 				GeometryModel3D value = new GeometryModel3D
 				{

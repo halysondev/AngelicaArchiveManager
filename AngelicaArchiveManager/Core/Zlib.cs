@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using zlib;
+using System.Threading.Tasks;
 
 namespace AngelicaArchiveManager.Core
 {
@@ -39,6 +40,28 @@ namespace AngelicaArchiveManager.Core
                 output.Write(buffer, 0, len);
             }
             output.Flush();
+        }
+        
+        // Async methods
+        public static async Task<byte[]> DecompressAsync(byte[] bytes, int size)
+        {
+            return await Task.Run(() => Decompress(bytes, size));
+        }
+        
+        public static async Task<byte[]> CompressAsync(byte[] bytes, int compression_level)
+        {
+            return await Task.Run(() => Compress(bytes, compression_level));
+        }
+        
+        public static async Task CopyStreamAsync(Stream input, Stream output, int Size)
+        {
+            byte[] buffer = new byte[Size];
+            int len;
+            while ((len = await input.ReadAsync(buffer, 0, Size)) > 0)
+            {
+                await output.WriteAsync(buffer, 0, len);
+            }
+            await output.FlushAsync();
         }
     }
 }
