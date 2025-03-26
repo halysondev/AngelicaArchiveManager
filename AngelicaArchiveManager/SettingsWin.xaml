@@ -5,41 +5,45 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AngelicaArchiveManager"
         mc:Ignorable="d"
-        Title="{StaticResource frmSettingsCaption}" Height="330" Width="400" 
+        Title="{StaticResource frmKeyCaption}" Height="426" Width="560" 
         Style="{StaticResource ExplorerWindow}"
-        MinHeight="330" MinWidth="400">
-    <Window.Resources>
-        <local:StringFormatToIntConverter x:Key="StringFormatToIntConverter"/>
-    </Window.Resources>
-    <Grid Margin="15">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="150"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        
-        <ListBox Grid.Row="0" Grid.Column="0" 
-                 Style="{StaticResource ExplorerListBox}"
-                 SelectedIndex="{Binding Index, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                 ItemsSource="{Binding Keys, UpdateSourceTrigger=PropertyChanged}" 
-                 Margin="0,0,10,0">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Foreground="{StaticResource PrimaryForegroundColor}" Style="{StaticResource TreeViewItemText}">
-                        <TextBlock.Text>
-                            <MultiBinding StringFormat="{}{0}">
-                                <Binding Path="Name" />
-                            </MultiBinding>
-                        </TextBlock.Text>
-                    </TextBlock>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-            <ListBox.ContextMenu>
+        MinHeight="426" MinWidth="560"
+        Background="#F7F7F7">
+    <Grid Margin="8">
+        <!-- Left side: ListView for Keys -->
+        <ListView Name="lvPairs" Width="233" Height="249" HorizontalAlignment="Left" VerticalAlignment="Top"
+                  Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0" BorderThickness="1"
+                  FontFamily="Courier New" FontSize="11" Margin="0,0,0,0"
+                  SelectedIndex="{Binding Index, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                  ItemsSource="{Binding Keys, UpdateSourceTrigger=PropertyChanged}">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="24">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding IconSource}" Width="16" Height="16" 
+                                       Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="188" Header="{StaticResource lblNameCaption}">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" 
+                                          Foreground="#373737" 
+                                          FontFamily="Courier New" 
+                                          FontSize="11"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+            <ListView.ContextMenu>
                 <ContextMenu Background="{StaticResource SecondaryBackgroundColor}"
                              BorderBrush="{StaticResource BorderColor}">
                     <MenuItem Header="{StaticResource miMetroAddFiles}" Click="AddClick" 
@@ -49,42 +53,85 @@
                               Foreground="{StaticResource PrimaryForegroundColor}"
                               Background="{StaticResource SecondaryBackgroundColor}"/>
                 </ContextMenu>
-            </ListBox.ContextMenu>
-        </ListBox>
+            </ListView.ContextMenu>
+        </ListView>
 
-        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,0">
-            <Label Content="{StaticResource lblNameCaption}" Style="{StaticResource ExplorerLabel}"/>
-            <TextBox Text="{Binding Key.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
-            
-            <Label Content="{StaticResource lblKey1Caption}" Style="{StaticResource ExplorerLabel}"/>
-            <TextBox Text="{Binding Key.KEY_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
-            
-            <Label Content="{StaticResource lblKey2Caption}" Style="{StaticResource ExplorerLabel}"/>
-            <TextBox Text="{Binding Key.KEY_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
-            
-            <Label Content="{StaticResource lblSign1Caption}" Style="{StaticResource ExplorerLabel}"/>
-            <TextBox Text="{Binding Key.ASIG_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
-            
-            <Label Content="{StaticResource lblSign2Caption}" Style="{StaticResource ExplorerLabel}"/>
-            <TextBox Text="{Binding Key.ASIG_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
-            
-            <Label Content="{StaticResource lblSign3Caption}" Style="{StaticResource ExplorerLabel}"/>
-            <TextBox Text="{Binding Key.FSIG_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     Style="{StaticResource ExplorerTextBox}" Margin="0,0,0,10"/>
-            
-            <Label Content="{StaticResource lblSign4Caption}" Style="{StaticResource ExplorerLabel}"/>
-            <TextBox Text="{Binding Key.FSIG_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     Style="{StaticResource ExplorerTextBox}"/>
-        </StackPanel>
-        
-        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,15,0,5">
-            <Label Content="Compression level:" Style="{StaticResource ExplorerLabel}" VerticalAlignment="Center"/>
-            <ComboBox Name="Compression" Width="60" Style="{StaticResource ExplorerComboBox}" Margin="5,0,0,0">
+        <!-- Right side: Key details -->
+        <Grid Margin="247,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="285">
+            <!-- Image panel with icon -->
+            <Label Content="{StaticResource lblImg}" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                   FontFamily="Courier New" FontSize="11" Margin="0,13,0,0"/>
+            <Border Name="panelImg" Width="25" Height="25" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                    Margin="177,8,0,0" Background="White" BorderBrush="#C0C0C0" BorderThickness="1">
+                <Image Name="imgKeyIco" Width="16" Height="16" Stretch="None" Margin="4,4,4,4"/>
+            </Border>
+
+            <!-- Key Name field -->
+            <Label Content="{StaticResource lblNameCaption}" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                   FontFamily="Courier New" FontSize="11" Margin="0,42,0,0"/>
+            <TextBox Name="eKeyName" Width="166" Height="22" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                     Text="{Binding Key.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue='Perfect World'}"
+                     Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0" 
+                     Margin="109,39,0,0" Padding="2" FontFamily="Courier New" FontSize="11"/>
+
+            <!-- Key fields -->
+            <Label Content="{StaticResource lblKey1Caption}" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                   FontFamily="Courier New" FontSize="11" Margin="0,70,0,0"/>
+            <TextBox Name="eKey1" Width="166" Height="22" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                     Text="{Binding Key.KEY_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue='-1466731422'}"
+                     Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0" 
+                     Margin="109,67,0,0" Padding="2" FontFamily="Courier New" FontSize="11"/>
+
+            <Label Content="{StaticResource lblKey2Caption}" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                   FontFamily="Courier New" FontSize="11" Margin="0,98,0,0"/>
+            <TextBox Name="eKey2" Width="166" Height="22" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                     Text="{Binding Key.KEY_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue='-240836425'}"
+                     Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0" 
+                     Margin="109,95,0,0" Padding="2" FontFamily="Courier New" FontSize="11"/>
+
+            <Label Content="{StaticResource lblKey3Caption}" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                   FontFamily="Courier New" FontSize="11" Margin="0,126,0,0"/>
+            <TextBox Name="eKey3" Width="166" Height="22" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                     Text="{Binding Key.KEY_3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=''}"
+                     Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0" 
+                     Margin="109,123,0,0" Padding="2" FontFamily="Courier New" FontSize="11"/>
+
+            <!-- Signature fields -->
+            <Label Content="{StaticResource lblSign1Caption}" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                   FontFamily="Courier New" FontSize="11" Margin="0,154,0,0"/>
+            <TextBox Name="eSign1" Width="166" Height="22" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                     Text="{Binding Key.ASIG_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue='-33685778'}"
+                     Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0" 
+                     Margin="109,151,0,0" Padding="2" FontFamily="Courier New" FontSize="11"/>
+
+            <Label Content="{StaticResource lblSign2Caption}" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                   FontFamily="Courier New" FontSize="11" Margin="0,182,0,0"/>
+            <TextBox Name="eSign2" Width="166" Height="22" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                     Text="{Binding Key.ASIG_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue='-267534605'}"
+                     Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0" 
+                     Margin="109,179,0,0" Padding="2" FontFamily="Courier New" FontSize="11"/>
+
+            <Label Content="{StaticResource lblSign3Caption}" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                   FontFamily="Courier New" FontSize="11" Margin="0,210,0,0"/>
+            <TextBox Name="eSign3" Width="166" Height="22" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                     Text="{Binding Key.FSIG_1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue='130503103'}"
+                     Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0" 
+                     Margin="109,207,0,0" Padding="2" FontFamily="Courier New" FontSize="11"/>
+
+            <Label Content="{StaticResource lblSign4Caption}" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                   FontFamily="Courier New" FontSize="11" Margin="0,238,0,0"/>
+            <TextBox Name="eSign4" Width="166" Height="22" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                     Text="{Binding Key.FSIG_2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue='145336151'}"
+                     Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0" 
+                     Margin="109,235,0,0" Padding="2" FontFamily="Courier New" FontSize="11"/>
+        </Grid>
+
+        <!-- Compression level at the bottom -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,270,0,0">
+            <Label Content="Compression level:" FontFamily="Courier New" FontSize="11" VerticalAlignment="Center"/>
+            <ComboBox Name="Compression" Width="60" Margin="5,0,0,0" Height="22" 
+                      Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0"
+                      FontFamily="Courier New" FontSize="11" SelectedIndex="1">
                 <ComboBoxItem Content="0"/>
                 <ComboBoxItem Content="1"/>
                 <ComboBoxItem Content="2"/>
@@ -97,19 +144,16 @@
                 <ComboBoxItem Content="9"/>
             </ComboBox>
         </StackPanel>
-        
-        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,5,0,15">
-            <Label Content="Language:" Style="{StaticResource ExplorerLabel}" VerticalAlignment="Center"/>
-            <ComboBox x:Name="Language" Width="250" Style="{StaticResource ExplorerComboBox}" Margin="5,0,0,0">
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,300,0,0">
+            <Label Content="Language:" FontFamily="Courier New" FontSize="11" VerticalAlignment="Center"/>
+            <ComboBox x:Name="Language" Width="250" Margin="5,0,0,0" Height="22"
+                      Background="#F7F7F7" Foreground="#373737" BorderBrush="#C0C0C0"
+                      FontFamily="Courier New" FontSize="11">
                 <ComboBoxItem Content="English"/>
                 <ComboBoxItem Content="Russian"/>
                 <ComboBoxItem Content="China"/>
             </ComboBox>
         </StackPanel>
-        
-        <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" 
-                Content="{StaticResource sbSaveSettings}" Click="SaveClick" 
-                Style="{StaticResource ExplorerButton}"
-                Height="30"/>
     </Grid>
 </Window>

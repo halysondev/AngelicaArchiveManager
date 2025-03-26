@@ -261,3 +261,6 @@ __pycache__/
 *.pyc
 
 design_reference
+settings_reference
+filemenu_reference
+search_reference

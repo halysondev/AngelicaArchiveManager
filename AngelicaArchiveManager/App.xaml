@@ -35,6 +35,7 @@
         <sys:String x:Key="frmSettingsCaption">Action list</sys:String>
         <sys:String x:Key="frmKeyCaption">Custom keypair edit</sys:String>
         <sys:String x:Key="lblNameCaption">Name</sys:String>
+        <sys:String x:Key="lblImg">Image</sys:String>
         <sys:String x:Key="lblKey1Caption">Key #1</sys:String>
         <sys:String x:Key="lblKey2Caption">Key #2</sys:String>
         <sys:String x:Key="lblKey3Caption">Key #3</sys:String>
@@ -158,7 +159,7 @@
             <Setter Property="Margin" Value="1,0,0,0"/>
             <Setter Property="FontFamily" Value="Courier New"/>
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Height" Value="21"/>
+            <Setter Property="Height" Value="23"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
@@ -179,6 +180,7 @@
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="Border" Property="Background" Value="{StaticResource TabHeaderSelectedColor}"/>
                                 <Setter TargetName="Border" Property="BorderThickness" Value="1,1,1,0"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Border" Property="Background" Value="{StaticResource TabHeaderHoverColor}"/>
@@ -218,6 +220,16 @@
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Foreground" Value="Black"/>
             <Setter Property="Padding" Value="2,1"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#CCE8FF"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E5F3FF"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <!-- ComboBox Style -->
@@ -300,7 +312,7 @@
         <Style x:Key="MenuButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Margin" Value="3,5,3,5"/>
             <Setter Property="Padding" Value="6,2"/>
             <Setter Property="Width" Value="64"/>
             <Setter Property="Height" Value="74"/>
@@ -317,9 +329,13 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Border" Property="Background" Value="#E0E0E0"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#C0C0C0"/>
+                                <Setter TargetName="Border" Property="BorderThickness" Value="1"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Border" Property="Background" Value="#D0D0D0"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#A0A0A0"/>
+                                <Setter TargetName="Border" Property="BorderThickness" Value="1"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

@@ -73,7 +73,7 @@ namespace AngelicaArchiveManager
 
         private void AddClick(object sender, RoutedEventArgs e)
         {
-            Keys.Add(new ArchiveKey() { Name = "NewKeyCollection" });
+            Keys.Add(new ArchiveKey() { Name = "New Key" });
         }
 
         private void RemoveClick(object sender, RoutedEventArgs e)
