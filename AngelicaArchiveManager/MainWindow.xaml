@@ -39,7 +39,7 @@
                         <Button Style="{StaticResource MenuButtonStyle}"  Width="97">
                             <StackPanel Orientation="Vertical">
                                 <Image Source="/Resources/imgmenu/Item1_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
-                                <TextBlock Text="{StaticResource miEditCaption}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New"/>
+                                <TextBlock Text="{StaticResource miExitCaption}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New"/>
                             </StackPanel>
                         </Button>
                     </WrapPanel>
@@ -150,7 +150,7 @@
                                 <TextBlock Text="{StaticResource miMetroActions}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Style="{StaticResource MenuButtonStyle}">
+                        <Button Style="{StaticResource MenuButtonStyle}" Click="SettingsClick">
                             <StackPanel Orientation="Vertical">
                                 <Image Source="/Resources/32x32/Item17_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
                                 <TextBlock Text="{StaticResource miMetroKeyEdit}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
@@ -162,7 +162,7 @@
                                 <TextBlock Text="{StaticResource miMetroAssociate}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Style="{StaticResource MenuButtonStyle}" Click="SettingsClick">
+                        <Button Style="{StaticResource MenuButtonStyle}">
                             <StackPanel Orientation="Vertical">
                                 <Image Source="/Resources/32x32/Item15_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
                                 <TextBlock Text="{StaticResource miMetroAbout}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New"/>
