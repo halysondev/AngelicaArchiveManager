@@ -345,6 +345,92 @@ namespace AngelicaArchiveManager
             }
         }
         
+        /// <summary>
+        /// Creates a new PCK file from a folder without requiring UI interaction
+        /// </summary>
+        /// <param name="sourceFolderPath">Path to the source folder</param>
+        /// <param name="destPckPath">Path where the PCK file will be created</param>
+        /// <param name="keyIndex">Index of the key to use (from Settings.Keys)</param>
+        /// <param name="version">Version of PCK file (2 or 3)</param>
+        /// <param name="compressionLevel">Compression level (0-9)</param>
+        /// <returns>A task that completes when the PCK creation is finished</returns>
+        public static async Task<bool> CreatePckFromFolder(
+            string sourceFolderPath,
+            string destPckPath,
+            int keyIndex = 0,
+            int version = 3,
+            int compressionLevel = 1)
+        {
+            try
+            {
+                if (!Directory.Exists(sourceFolderPath))
+                {
+                    throw new DirectoryNotFoundException($"Source folder not found: {sourceFolderPath}");
+                }
+                
+                if (keyIndex < 0 || keyIndex >= Settings.Keys.Count)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(keyIndex), "Invalid key index");
+                }
+                
+                if (version != 2 && version != 3)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(version), "Version must be 2 or 3");
+                }
+                
+                if (compressionLevel < 0 || compressionLevel > 9)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(compressionLevel), "Compression level must be between 0 and 9");
+                }
+                
+                // Ensure destination path has .pck extension
+                if (!destPckPath.EndsWith(".pck", StringComparison.OrdinalIgnoreCase))
+                {
+                    destPckPath += ".pck";
+                }
+                
+                // Create a new archive manager with the selected version
+                ArchiveVersion selectedVersion = version == 2 ? ArchiveVersion.V2 : ArchiveVersion.V3;
+                var archiveManager = new Core.ArchiveEngine.ArchiveManager(destPckPath, Settings.Keys[keyIndex], false)
+                {
+                    Version = selectedVersion
+                };
+                
+                // Initialize the PCK file
+                archiveManager.InitializePck(Settings.Keys[keyIndex].FSIG_1, Settings.Keys[keyIndex].FSIG_2);
+                
+                // Get all files in the source directory and subdirectories
+                List<string> files = Directory.GetFiles(sourceFolderPath, "*", SearchOption.AllDirectories).ToList();
+                
+                // Set compression level temporarily for this operation
+                int originalCompressionLevel = Settings.CompressionLevel;
+                Settings.CompressionLevel = compressionLevel;
+                
+                try
+                {
+                    // Add all files to the archive, preserving folder structure
+                    // Get the parent directory to preserve the selected folder in the PCK
+                    string parentDir = Directory.GetParent(sourceFolderPath).FullName;
+                    await archiveManager.AddFilesAsync(files, parentDir, "\\");
+                    
+                    // Ensure the file has the correct version markers
+                    archiveManager.SaveFileTable();
+                    
+                    return true;
+                }
+                finally
+                {
+                    // Restore original compression level
+                    Settings.CompressionLevel = originalCompressionLevel;
+                }
+            }
+            catch (Exception)
+            {
+                // Re-throw the exception to be handled by the caller
+                throw;
+            }
+        }
+        
         private void CreateNewPckFromFolder(object sender, RoutedEventArgs e)
         {
             // Create folder browser dialog
@@ -385,7 +471,6 @@ namespace AngelicaArchiveManager
                     int keyIndex = inputDialog.GetComboBoxSelectedIndex("ArchiveKey");
                     int versionIndex = inputDialog.GetComboBoxSelectedIndex("Version");
                     int compressionLevel = inputDialog.GetComboBoxSelectedIndex("CompressionLevel");
-                    ArchiveVersion selectedVersion = versionIndex == 0 ? ArchiveVersion.V2 : ArchiveVersion.V3;
                     
                     if (string.IsNullOrEmpty(pckName))
                     {
@@ -401,52 +486,22 @@ namespace AngelicaArchiveManager
                     // Get the full destination path
                     string destPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(dialog.SelectedPath), pckName);
                     
-                    // Get the folder name to use as the root in the PCK
-                    string folderName = System.IO.Path.GetFileName(dialog.SelectedPath);
-                    
                     Task.Run(async () =>
                     {
                         try
                         {
-                            // Create a new archive manager with the selected version
-                            var archiveManager = new Core.ArchiveEngine.ArchiveManager(destPath, Settings.Keys[keyIndex], false)
-                            {
-                                Version = selectedVersion
-                            };
-                            
-                            // Initialize the PCK file
-                            archiveManager.InitializePck(Settings.Keys[keyIndex].FSIG_1, Settings.Keys[keyIndex].FSIG_2);
-                            
-                            // Get all files in the source directory and subdirectories
-                            List<string> files = Directory.GetFiles(dialog.SelectedPath, "*", SearchOption.AllDirectories).ToList();
-                            
-                            // Set compression level temporarily for this operation
-                            int originalCompressionLevel = Settings.CompressionLevel;
-                            Settings.CompressionLevel = compressionLevel;
-                            
-                            // Add all files to the archive, preserving folder structure
-                            // The parent folder name is preserved by using Directory.GetParent(dialog.SelectedPath).FullName as srcdir
-                            string parentDir = Directory.GetParent(dialog.SelectedPath).FullName;
-                            await archiveManager.AddFilesAsync(files, parentDir, "\\");
-                            
-                            // Restore original compression level
-                            Settings.CompressionLevel = originalCompressionLevel;
-                            
-                            // Ensure the file has the correct version markers
-                            if (selectedVersion == ArchiveVersion.V2)
-                            {
-                                // Update file size and version markers
-                                archiveManager.SaveFileTable();
-                            }
-                            else // V3
-                            {
-                                // Update file size and version markers
-                                archiveManager.SaveFileTable();
-                            }
+                            // Use the static method to create the PCK file
+                            bool success = await CreatePckFromFolder(
+                                dialog.SelectedPath,
+                                destPath,
+                                keyIndex,
+                                versionIndex == 0 ? 2 : 3,
+                                compressionLevel
+                            );
                             
                             Dispatcher.Invoke(() =>
                             {
-                                MessageBox.Show($"Successfully created {pckName} with {files.Count} files.");
+                                MessageBox.Show($"Successfully created {pckName} with {Directory.GetFiles(dialog.SelectedPath, "*", SearchOption.AllDirectories).Count()} files.");
                                 System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{destPath}\"");
                             });
                         }
