@@ -1,4 +1,4 @@
-﻿using AngelicaArchiveManager.Core.ArchiveEngine;
+using AngelicaArchiveManager.Core.ArchiveEngine;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -85,7 +85,7 @@ namespace AngelicaArchiveManager
         private void SaveClick(object sender, RoutedEventArgs e)
         {
             Settings.CompressionLevel = Compression.SelectedIndex;
-            Settings.Language = Language.SelectedIndex + 1;
+            Settings.Language = LanguageSelector.SelectedIndex + 1;
             Settings.Keys.Clear();
             Settings.Keys.AddRange(Keys);
             Settings.Save();

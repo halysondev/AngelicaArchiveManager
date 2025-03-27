@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -54,7 +54,6 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             if (pck == null)
                 throw new InvalidOperationException("O arquivo principal (PCK) não está disponível.");
             
-            long max_size = 2147483392L + 4294966784L;
             switch (origin)
             {
                 case SeekOrigin.Begin:

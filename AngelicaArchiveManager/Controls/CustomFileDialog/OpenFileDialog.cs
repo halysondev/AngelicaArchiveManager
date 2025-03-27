@@ -37,7 +37,6 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
             base.SetOption(0x1000, true);
         }
 
-        [SecurityCritical]
         public Stream OpenFile()
         {
             string str = base.FileNamesInternal[0];
@@ -46,14 +45,14 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
                 throw new InvalidOperationException("FileNameMustNotBeNull");
             }
             FileStream stream = null;
-            new FileIOPermission(FileIOPermissionAccess.Read, str).Assert();
             try
             {
                 stream = new FileStream(str, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
-            finally
+            catch (Exception)
             {
-                CodeAccessPermission.RevertAssert();
+                // Handle file access exceptions
+                throw new IOException($"Cannot open file: {str}");
             }
             return stream;
         }
@@ -71,14 +70,14 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
                     throw new InvalidOperationException("FileNameMustNotBeNull");
                 }
                 FileStream stream = null;
-                new FileIOPermission(FileIOPermissionAccess.Read, str).Assert();
                 try
                 {
                     stream = new FileStream(str, FileMode.Open, FileAccess.Read, FileShare.Read);
                 }
-                finally
+                catch (Exception)
                 {
-                    CodeAccessPermission.RevertAssert();
+                    // Handle file access exceptions
+                    throw new IOException($"Cannot open file: {str}");
                 }
                 streamArray[i] = stream;
             }
@@ -158,4 +157,3 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
         }
     }
 }
-

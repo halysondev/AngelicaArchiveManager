@@ -14,20 +14,28 @@ namespace AngelicaArchiveManager.Core
         public static async Task<byte[]> ReadAllBytesAsync(string path)
         {
             using (FileStream stream = new FileStream(
-                path, 
-                FileMode.Open, 
-                FileAccess.Read, 
-                FileShare.Read, 
+                path: path,
+                mode: FileMode.Open,
+                access: FileAccess.Read,
+                share: FileShare.Read,
                 bufferSize: 4096, 
                 useAsync: true))
             {
                 byte[] buffer = new byte[stream.Length];
-                await Task.Run(() => 
+                int bytesRead = 0;
+                int totalBytesRead = 0;
+                
+                // Ensure we read the exact number of bytes
+                while (totalBytesRead < buffer.Length)
                 {
-                    stream.Read(buffer, 0, buffer.Length);
-                });
+                    bytesRead = await stream.ReadAsync(buffer, totalBytesRead, buffer.Length - totalBytesRead);
+                    if (bytesRead == 0)
+                        break; // End of stream reached prematurely
+                    totalBytesRead += bytesRead;
+                }
+                
                 return buffer;
             }
         }
     }
-} 
+}

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AngelicaArchiveManager.Interfaces;
 using System.Threading.Tasks;
 
@@ -13,12 +13,12 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
         event Events.SetProgressMax SetProgressMax;
         event Events.SetProgressNext SetProgressNext;
 
-        void AddFiles(List<string> files, string srcdir, string dstdir);
-        void Defrag();
+        Task AddFiles(List<string> files, string srcdir, string dstdir);
+        Task Defrag();
         byte[] GetFile(IArchiveEntry entry, bool reload = true);
         List<byte[]> GetFiles(List<IArchiveEntry> files);
         void ReadFileTable();
-        void SaveFileTable(long filetable = -1);
+        Task SaveFileTable(long filetable = -1);
         void UnpackFiles(string srcdir, List<IArchiveEntry> files, string dstdir);
         
         // Async methods for improved performance

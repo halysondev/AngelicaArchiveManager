@@ -1,4 +1,4 @@
-﻿using AngelicaArchiveManager.Interfaces;
+using AngelicaArchiveManager.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -210,6 +210,8 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                     System.Diagnostics.Debug.WriteLine($"Última exceção: {lastException.Message}\n{lastException.StackTrace}");
                 #endif
             }
+            
+            return;
         }
 
         private async Task ReadFileTableV2AsyncWithKey()
@@ -403,67 +405,59 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             }
         }
 
-        public void SaveFileTable(long filetable = -1)
+        public Task SaveFileTable(long filetable = -1)
         {
             switch (Version)
             {
                 case ArchiveVersion.V2:
-                    SaveFileTableV2(filetable);
-                    break;
+                    return SaveFileTableV2Async(filetable);
                 case ArchiveVersion.V3:
-                    SaveFileTableV3(filetable);
-                    break;
+                    return SaveFileTableV3Async(filetable);
                 default:
                     MessageBox.Show("Unknown archive type");
-                    break;
+                    return Task.CompletedTask;
             }
         }
 
-        public async Task SaveFileTableAsync(long filetable = -1)
+        public Task SaveFileTableAsync(long filetable = -1)
         {
             switch (Version)
             {
                 case ArchiveVersion.V2:
-                    await SaveFileTableV2Async(filetable);
-                    break;
+                    return SaveFileTableV2Async(filetable);
                 case ArchiveVersion.V3:
-                    await SaveFileTableV3Async(filetable);
-                    break;
+                    return SaveFileTableV3Async(filetable);
                 default:
                     MessageBox.Show("Unknown archive type");
-                    break;
+                    return Task.CompletedTask;
             }
         }
 
-        public void AddFiles(List<string> files, string srcdir, string dstdir)
+        public Task AddFiles(List<string> files, string srcdir, string dstdir)
         {
             switch (Version)
             {
                 case ArchiveVersion.V2:
-                    AddFilesV2(files, srcdir, dstdir);
-                    break;
+                    return AddFilesV2Async(files, srcdir, dstdir);
                 case ArchiveVersion.V3:
-                    AddFilesV3(files, srcdir, dstdir);
-                    break;
+                    return AddFilesV3Async(files, srcdir, dstdir);
                 default:
                     MessageBox.Show("Unknown archive type");
-                    break;
+                    return Task.CompletedTask;
             }
         }
 
-        public void Defrag()
+        public Task Defrag()
         {
             switch (Version)
             {
                 case ArchiveVersion.V2:
-                    DefragV2();
-                    break;
+                    return DefragV2Async();
                 case ArchiveVersion.V3:
-                    DefragV3();
-                    break;
+                    return DefragV3Async();
                 default:
                     MessageBox.Show("Unknown archive type");
-                    break;
+                    return Task.CompletedTask;
             }
         }
 
@@ -490,127 +484,88 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             LoadData?.Invoke(0);
         }
 
-        public async Task ReadFileTableV2Async()
+        public Task ReadFileTableV2Async()
         {
-            Stream.Reopen(true);
-            Stream.Seek(-8, SeekOrigin.End);
-            int FilesCount = Stream.ReadInt32();
-            SetProgressMax?.Invoke(FilesCount);
-            Stream.Seek(-272, SeekOrigin.End);
-            long FileTableOffset = (long)((ulong)((uint)(Stream.ReadUInt32() ^ (ulong)Key.KEY_1)));
-            Stream.Seek(FileTableOffset, SeekOrigin.Begin);
-            byte[] tableData = Stream.ReadBytes((int)(Stream.GetLenght() - FileTableOffset - 280));
-            
-            await Task.Run(() => {
-                BinaryReader TableStream = new BinaryReader(new MemoryStream(tableData));
-                for (int i = 0; i < FilesCount; ++i)
+            return Task.Run(() => 
+            {
+                Stream.Reopen(true);
+                Stream.Seek(-8, SeekOrigin.End);
+                int FilesCount = Stream.ReadInt32();
+                SetProgressMax?.Invoke(FilesCount);
+                Stream.Seek(-272, SeekOrigin.End);
+                long FileTableOffset = (long)((ulong)((uint)(Stream.ReadUInt32() ^ (ulong)Key.KEY_1)));
+                Stream.Seek(FileTableOffset, SeekOrigin.Begin);
+                byte[] tableData = Stream.ReadBytes((int)(Stream.GetLenght() - FileTableOffset - 280));
+                
+                using (BinaryReader TableStream = new BinaryReader(new MemoryStream(tableData)))
                 {
-                    int EntrySize = TableStream.ReadInt32() ^ Key.KEY_1;
-                    TableStream.ReadInt32();
-                    byte[] entryData = TableStream.ReadBytes(EntrySize);
-                    
-                    var entry = new ArchiveEntryV2(entryData);
-                    lock (Files)
+                    for (int i = 0; i < FilesCount; ++i)
                     {
-                        Files.Add(entry);
+                        int EntrySize = TableStream.ReadInt32() ^ Key.KEY_1;
+                        TableStream.ReadInt32();
+                        byte[] entryData = TableStream.ReadBytes(EntrySize);
+                        
+                        var entry = new ArchiveEntryV2(entryData);
+                        lock (Files)
+                        {
+                            Files.Add(entry);
+                        }
+                        SetProgressNext?.Invoke();
                     }
-                    SetProgressNext?.Invoke();
+                }
+                
+                SetProgress?.Invoke(0);
+                Stream.Close();
+                LoadData?.Invoke(0);
+            });
+        }
+
+        public Task SaveFileTableV2Async(long filetable = -1)
+        {
+            return Task.Run(() => 
+            {
+                try
+                {
+                    Stream.Reopen(false);
+                    long FileTableOffset = filetable;
+                    if (FileTableOffset == -1)
+                    {
+                        Stream.Seek(-272, SeekOrigin.End);
+                        FileTableOffset = (long)((ulong)((uint)(Stream.ReadUInt32() ^ (ulong)Key.KEY_1)));
+                        Stream.Cut(FileTableOffset);
+                    }
+                    Stream.Seek(FileTableOffset, SeekOrigin.Begin);
+                    SetProgressMax?.Invoke(Files.Count);
+                    int cl = Settings.CompressionLevel;
+                    foreach (IArchiveEntry entry in Files)
+                    {
+                        SetProgressNext?.Invoke();
+                        byte[] data = entry.Write(cl);
+                        Stream.WriteInt32(data.Length ^ Key.KEY_1);
+                        Stream.WriteInt32(data.Length ^ Key.KEY_2);
+                        Stream.WriteBytes(data);
+                    }
+                    Stream.WriteInt32(Key.ASIG_1);
+                    Stream.WriteInt16(2);
+                    Stream.WriteInt16(2);
+                    Stream.WriteUInt32((uint)(FileTableOffset ^ Key.KEY_1));
+                    Stream.WriteInt32(0);
+                    Stream.WriteBytes(Encoding.Default.GetBytes("Angelica File Package, Perfect World."));
+                    Stream.WriteBytes(new byte[215]);
+                    Stream.WriteInt32(Key.ASIG_2);
+                    Stream.WriteInt32(Files.Count);
+                    Stream.WriteInt16(2);
+                    Stream.WriteInt16(2);
+                    Stream.Seek(4, SeekOrigin.Begin);
+                    Stream.WriteUInt32((uint)Stream.GetLenght());
+                    SetProgress?.Invoke(0);
+                    Stream.Close();
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show($"{e.Message}\n{e.Source}\n{e.StackTrace}");
                 }
             });
-            
-            SetProgress?.Invoke(0);
-            Stream.Close();
-            LoadData?.Invoke(0);
-        }
-
-        public void SaveFileTableV2(long filetable = -1)
-        {
-            try
-            {
-                Stream.Reopen(false);
-                long FileTableOffset = filetable;
-                if (FileTableOffset == -1)
-                {
-                    Stream.Seek(-272, SeekOrigin.End);
-                    FileTableOffset = (long)((ulong)((uint)(Stream.ReadUInt32() ^ (ulong)Key.KEY_1)));
-                    Stream.Cut(FileTableOffset);
-                }
-                Stream.Seek(FileTableOffset, SeekOrigin.Begin);
-                SetProgressMax?.Invoke(Files.Count);
-                int cl = Settings.CompressionLevel;
-                foreach (IArchiveEntry entry in Files)
-                {
-                    SetProgressNext?.Invoke();
-                    byte[] data = entry.Write(cl);
-                    Stream.WriteInt32(data.Length ^ Key.KEY_1);
-                    Stream.WriteInt32(data.Length ^ Key.KEY_2);
-                    Stream.WriteBytes(data);
-                }
-                Stream.WriteInt32(Key.ASIG_1);
-                Stream.WriteInt16(2);
-                Stream.WriteInt16(2);
-                Stream.WriteUInt32((uint)(FileTableOffset ^ Key.KEY_1));
-                Stream.WriteInt32(0);
-                Stream.WriteBytes(Encoding.Default.GetBytes("Angelica File Package, Perfect World."));
-                Stream.WriteBytes(new byte[215]);
-                Stream.WriteInt32(Key.ASIG_2);
-                Stream.WriteInt32(Files.Count);
-                Stream.WriteInt16(2);
-                Stream.WriteInt16(2);
-                Stream.Seek(4, SeekOrigin.Begin);
-                Stream.WriteUInt32((uint)Stream.GetLenght());
-                SetProgress?.Invoke(0);
-                Stream.Close();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show($"{e.Message}\n{e.Source}\n{e.StackTrace}");
-            }
-        }
-
-        public async Task SaveFileTableV2Async(long filetable = -1)
-        {
-            try
-            {
-                Stream.Reopen(false);
-                long FileTableOffset = filetable;
-                if (FileTableOffset == -1)
-                {
-                    Stream.Seek(-272, SeekOrigin.End);
-                    FileTableOffset = (long)((ulong)((uint)(Stream.ReadUInt32() ^ (ulong)Key.KEY_1)));
-                    Stream.Cut(FileTableOffset);
-                }
-                Stream.Seek(FileTableOffset, SeekOrigin.Begin);
-                SetProgressMax?.Invoke(Files.Count);
-                int cl = Settings.CompressionLevel;
-                foreach (IArchiveEntry entry in Files)
-                {
-                    SetProgressNext?.Invoke();
-                    byte[] data = entry.Write(cl);
-                    Stream.WriteInt32(data.Length ^ Key.KEY_1);
-                    Stream.WriteInt32(data.Length ^ Key.KEY_2);
-                    Stream.WriteBytes(data);
-                }
-                Stream.WriteInt32(Key.ASIG_1);
-                Stream.WriteInt16(2);
-                Stream.WriteInt16(2);
-                Stream.WriteUInt32((uint)(FileTableOffset ^ Key.KEY_1));
-                Stream.WriteInt32(0);
-                Stream.WriteBytes(Encoding.Default.GetBytes("Angelica File Package, Perfect World."));
-                Stream.WriteBytes(new byte[215]);
-                Stream.WriteInt32(Key.ASIG_2);
-                Stream.WriteInt32(Files.Count);
-                Stream.WriteInt16(2);
-                Stream.WriteInt16(2);
-                Stream.Seek(4, SeekOrigin.Begin);
-                Stream.WriteUInt32((uint)Stream.GetLenght());
-                SetProgress?.Invoke(0);
-                Stream.Close();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show($"{e.Message}\n{e.Source}\n{e.StackTrace}");
-            }
         }
 
         public void AddFilesV2(List<string> files, string srcdir, string dstdir)
@@ -669,62 +624,65 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             LoadData?.Invoke(1);
         }
 
-        public async Task AddFilesV2Async(List<string> files, string srcdir, string dstdir)
+        public Task AddFilesV2Async(List<string> files, string srcdir, string dstdir)
         {
-            Stream.Reopen(false);
-            SetProgressMax?.Invoke(files.Count);
-            int cl = Settings.CompressionLevel;
-            Stream.Seek(-272, SeekOrigin.End);
-            long current_end = (long)((ulong)((uint)(Stream.ReadUInt32() ^ (ulong)Key.KEY_1)));
-            
-            foreach (string file in files)
+            return Task.Run(() => 
             {
-                byte[] data = await FileExtensions.ReadAllBytesAsync(file);
-                int size = data.Length;
-                byte[] compressed = await Zlib.CompressAsync(data, cl);
-                if (compressed.Length < size)
-                    data = compressed;
-                string path = (dstdir + file.RemoveFirst(srcdir).RemoveFirstSeparator()).RemoveFirstSeparator();
-                var entry = Files.Where(x => x.Path == path).ToList();
-                if (entry.Count > 0)
+                Stream.Reopen(false);
+                SetProgressMax?.Invoke(files.Count);
+                int cl = Settings.CompressionLevel;
+                Stream.Seek(-272, SeekOrigin.End);
+                long current_end = (long)((ulong)((uint)(Stream.ReadUInt32() ^ (ulong)Key.KEY_1)));
+                
+                foreach (string file in files)
                 {
-                    if (data.Length <= entry[0].CSize)
+                    byte[] data = File.ReadAllBytes(file);
+                    int size = data.Length;
+                    byte[] compressed = Zlib.Compress(data, cl);
+                    if (compressed.Length < size)
+                        data = compressed;
+                    string path = (dstdir + file.RemoveFirst(srcdir).RemoveFirstSeparator()).RemoveFirstSeparator();
+                    var entry = Files.Where(x => x.Path == path).ToList();
+                    if (entry.Count > 0)
                     {
-                        entry[0].Size = size;
-                        entry[0].CSize = data.Length;
-                        Stream.Seek(entry[0].Offset, SeekOrigin.Begin);
-                        Stream.WriteBytes(data);
+                        if (data.Length <= entry[0].CSize)
+                        {
+                            entry[0].Size = size;
+                            entry[0].CSize = data.Length;
+                            Stream.Seek(entry[0].Offset, SeekOrigin.Begin);
+                            Stream.WriteBytes(data);
+                        }
+                        else
+                        {
+                            entry[0].Size = size;
+                            entry[0].CSize = data.Length;
+                            entry[0].Offset = current_end;
+                            Stream.Seek(current_end, SeekOrigin.Begin);
+                            current_end += data.Length;
+                            Stream.WriteBytes(data);
+                        }
                     }
                     else
                     {
-                        entry[0].Size = size;
-                        entry[0].CSize = data.Length;
-                        entry[0].Offset = current_end;
+                        Files.Add(new ArchiveEntryV2()
+                        {
+                            Path = path,
+                            Size = size,
+                            CSize = data.Length,
+                            Offset = current_end
+                        });
                         Stream.Seek(current_end, SeekOrigin.Begin);
                         current_end += data.Length;
                         Stream.WriteBytes(data);
                     }
+                    SetProgressNext?.Invoke();
                 }
-                else
-                {
-                    Files.Add(new ArchiveEntryV2()
-                    {
-                        Path = path,
-                        Size = size,
-                        CSize = data.Length,
-                        Offset = current_end
-                    });
-                    Stream.Seek(current_end, SeekOrigin.Begin);
-                    current_end += data.Length;
-                    Stream.WriteBytes(data);
-                }
-                SetProgressNext?.Invoke();
-            }
-            
-            await SaveFileTableV2Async(current_end);
-            SetProgress?.Invoke(0);
-            LoadData?.Invoke(0);
-            LoadData?.Invoke(1);
+                
+                SaveFileTableV2Async(current_end).Wait();
+                SetProgress?.Invoke(0);
+                LoadData?.Invoke(0);
+                LoadData?.Invoke(1);
+            });
         }
 
         public void DefragV2()
@@ -761,41 +719,44 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             ReadFileTable();
         }
 
-        public async Task DefragV2Async()
+        public Task DefragV2Async()
         {
-            Stream.Reopen(true);
-            long oldsize = Stream.GetLenght();
-            ArchiveManager am = new ArchiveManager(Path + ".defrag", Key, false);
-            am.Stream.Reopen(false);
-            am.Stream.WriteInt32(Key.FSIG_1);
-            am.Stream.WriteInt32(0);
-            am.Stream.WriteInt32(Key.FSIG_2);
-            int cl = Settings.CompressionLevel;
-            SetProgressMax?.Invoke(Files.Count);
-            
-            foreach (IArchiveEntry file in Files)
+            return Task.Run(() => 
             {
-                byte[] data = await GetFileAsync(file, false);
-                byte[] compressed = await Zlib.CompressAsync(data, cl);
-                if (compressed.Length >= data.Length)
-                    compressed = data;
-                file.Offset = am.Stream.Position;
-                file.Size = data.Length;
-                file.CSize = compressed.Length;
-                am.Stream.WriteBytes(compressed);
-                SetProgressNext?.Invoke();
-            }
-            
-            am.Files = Files;
-            await am.SaveFileTableV2Async(am.Stream.Position);
-            am.Stream.Close();
-            Stream.Close();
-            File.Delete(Path);
-            File.Move(Path + ".defrag", Path);
-            long newsize = Stream.GetLenght();
-            MessageBox.Show($"Defragment Completed\nOld size: {oldsize}\nNew size: {newsize}");
-            Stream.Close();
-            await ReadFileTableAsync();
+                Stream.Reopen(true);
+                long oldsize = Stream.GetLenght();
+                ArchiveManager am = new ArchiveManager(Path + ".defrag", Key, false);
+                am.Stream.Reopen(false);
+                am.Stream.WriteInt32(Key.FSIG_1);
+                am.Stream.WriteInt32(0);
+                am.Stream.WriteInt32(Key.FSIG_2);
+                int cl = Settings.CompressionLevel;
+                SetProgressMax?.Invoke(Files.Count);
+                
+                foreach (IArchiveEntry file in Files)
+                {
+                    byte[] data = GetFile(file, false);
+                    byte[] compressed = Zlib.Compress(data, cl);
+                    if (compressed.Length >= data.Length)
+                        compressed = data;
+                    file.Offset = am.Stream.Position;
+                    file.Size = data.Length;
+                    file.CSize = compressed.Length;
+                    am.Stream.WriteBytes(compressed);
+                    SetProgressNext?.Invoke();
+                }
+                
+                am.Files = Files;
+                am.SaveFileTableV2Async(am.Stream.Position).Wait();
+                am.Stream.Close();
+                Stream.Close();
+                File.Delete(Path);
+                File.Move(Path + ".defrag", Path);
+                long newsize = Stream.GetLenght();
+                MessageBox.Show($"Defragment Completed\nOld size: {oldsize}\nNew size: {newsize}");
+                Stream.Close();
+                ReadFileTableAsync().Wait();
+            });
         }
         #endregion
 
@@ -822,129 +783,89 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             LoadData?.Invoke(0);
         }
 
-        public async Task ReadFileTableV3Async()
+        public Task ReadFileTableV3Async()
         {
-            Stream.Reopen(true);
-            Stream.Seek(-8, SeekOrigin.End);
-            int FilesCount = Stream.ReadInt32();
-            SetProgressMax?.Invoke(FilesCount);
-            Stream.Seek(-280, SeekOrigin.End);
-            long FileTableOffset = Stream.ReadInt64() ^ Key.KEY_1;
-            Stream.Seek(FileTableOffset, SeekOrigin.Begin);
-            byte[] tableData = Stream.ReadBytes((int)(Stream.GetLenght() - FileTableOffset - 288));
-            
-            await Task.Run(() => {
-                BinaryReader TableStream = new BinaryReader(new MemoryStream(tableData));
-                for (int i = 0; i < FilesCount; ++i)
+            return Task.Run(() => 
+            {
+                Stream.Reopen(true);
+                Stream.Seek(-8, SeekOrigin.End);
+                int FilesCount = Stream.ReadInt32();
+                SetProgressMax?.Invoke(FilesCount);
+                Stream.Seek(-280, SeekOrigin.End);
+                long FileTableOffset = Stream.ReadInt64() ^ Key.KEY_1;
+                Stream.Seek(FileTableOffset, SeekOrigin.Begin);
+                byte[] tableData = Stream.ReadBytes((int)(Stream.GetLenght() - FileTableOffset - 288));
+                
+                using (BinaryReader TableStream = new BinaryReader(new MemoryStream(tableData)))
                 {
-                    int EntrySize = TableStream.ReadInt32() ^ Key.KEY_1;
-                    TableStream.ReadInt32();
-                    byte[] entryData = TableStream.ReadBytes(EntrySize);
-                    
-                    var entry = new ArchiveEntryV3(entryData);
-                    lock (Files)
+                    for (int i = 0; i < FilesCount; ++i)
                     {
-                        Files.Add(entry);
+                        int EntrySize = TableStream.ReadInt32() ^ Key.KEY_1;
+                        TableStream.ReadInt32();
+                        byte[] entryData = TableStream.ReadBytes(EntrySize);
+                        
+                        var entry = new ArchiveEntryV3(entryData);
+                        lock (Files)
+                        {
+                            Files.Add(entry);
+                        }
+                        SetProgressNext?.Invoke();
                     }
-                    SetProgressNext?.Invoke();
+                }
+                
+                SetProgress?.Invoke(0);
+                Stream.Close();
+                LoadData?.Invoke(0);
+            });
+        }
+
+        public Task SaveFileTableV3Async(long filetable = -1)
+        {
+            return Task.Run(() => 
+            {
+                try
+                {
+                    Stream.Reopen(false);
+                    long FileTableOffset = filetable;
+                    if (FileTableOffset == -1)
+                    {
+                        Stream.Seek(-280, SeekOrigin.End);
+                        FileTableOffset = Stream.ReadInt64() ^ Key.KEY_1;
+                        Stream.Cut(FileTableOffset);
+                    }
+                    Stream.Seek(FileTableOffset, SeekOrigin.Begin);
+                    SetProgressMax?.Invoke(Files.Count);
+                    int cl = Settings.CompressionLevel;
+                    foreach (IArchiveEntry entry in Files)
+                    {
+                        SetProgressNext?.Invoke();
+                        byte[] data = entry.Write(cl);
+                        Stream.WriteInt32(data.Length ^ Key.KEY_1);
+                        Stream.WriteInt32(data.Length ^ Key.KEY_2);
+                        Stream.WriteBytes(data);
+                    }
+                    Stream.WriteInt32(Key.ASIG_1);
+                    Stream.WriteInt16(3);
+                    Stream.WriteInt16(2);
+                    Stream.WriteInt64(FileTableOffset ^ Key.KEY_1);
+                    Stream.WriteInt32(0);
+                    Stream.WriteBytes(Encoding.Default.GetBytes("Angelica File Package, Perfect World."));
+                    Stream.WriteBytes(new byte[215]);
+                    Stream.WriteInt32(Key.ASIG_2);
+                    Stream.WriteInt32(0);
+                    Stream.WriteInt32(Files.Count);
+                    Stream.WriteInt16(3);
+                    Stream.WriteInt16(2);
+                    Stream.Seek(4, SeekOrigin.Begin);
+                    Stream.WriteInt64(Stream.GetLenght());
+                    Stream.Close();
+                    SetProgress?.Invoke(0);
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show($"{e.Message}\n{e.Source}\n{e.StackTrace}");
                 }
             });
-            
-            SetProgress?.Invoke(0);
-            Stream.Close();
-            LoadData?.Invoke(0);
-        }
-
-        public void SaveFileTableV3(long filetable = -1)
-        {
-            try
-            {
-                Stream.Reopen(false);
-                long FileTableOffset = filetable;
-                if (FileTableOffset == -1)
-                {
-                    Stream.Seek(-280, SeekOrigin.End);
-                    FileTableOffset = Stream.ReadInt64() ^ Key.KEY_1;
-                    Stream.Cut(FileTableOffset);
-                }
-                Stream.Seek(FileTableOffset, SeekOrigin.Begin);
-                SetProgressMax?.Invoke(Files.Count);
-                int cl = Settings.CompressionLevel;
-                foreach (IArchiveEntry entry in Files)
-                {
-                    SetProgressNext?.Invoke();
-                    byte[] data = entry.Write(cl);
-                    Stream.WriteInt32(data.Length ^ Key.KEY_1);
-                    Stream.WriteInt32(data.Length ^ Key.KEY_2);
-                    Stream.WriteBytes(data);
-                }
-                Stream.WriteInt32(Key.ASIG_1);
-                Stream.WriteInt16(3);
-                Stream.WriteInt16(2);
-                Stream.WriteInt64(FileTableOffset ^ Key.KEY_1);
-                Stream.WriteInt32(0);
-                Stream.WriteBytes(Encoding.Default.GetBytes("Angelica File Package, Perfect World."));
-                Stream.WriteBytes(new byte[215]);
-                Stream.WriteInt32(Key.ASIG_2);
-                Stream.WriteInt32(0);
-                Stream.WriteInt32(Files.Count);
-                Stream.WriteInt16(3);
-                Stream.WriteInt16(2);
-                Stream.Seek(4, SeekOrigin.Begin);
-                Stream.WriteInt64(Stream.GetLenght());
-                Stream.Close();
-                SetProgress?.Invoke(0);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show($"{e.Message}\n{e.Source}\n{e.StackTrace}");
-            }
-        }
-
-        public async Task SaveFileTableV3Async(long filetable = -1)
-        {
-            try
-            {
-                Stream.Reopen(false);
-                long FileTableOffset = filetable;
-                if (FileTableOffset == -1)
-                {
-                    Stream.Seek(-280, SeekOrigin.End);
-                    FileTableOffset = Stream.ReadInt64() ^ Key.KEY_1;
-                    Stream.Cut(FileTableOffset);
-                }
-                Stream.Seek(FileTableOffset, SeekOrigin.Begin);
-                SetProgressMax?.Invoke(Files.Count);
-                int cl = Settings.CompressionLevel;
-                foreach (IArchiveEntry entry in Files)
-                {
-                    SetProgressNext?.Invoke();
-                    byte[] data = entry.Write(cl);
-                    Stream.WriteInt32(data.Length ^ Key.KEY_1);
-                    Stream.WriteInt32(data.Length ^ Key.KEY_2);
-                    Stream.WriteBytes(data);
-                }
-                Stream.WriteInt32(Key.ASIG_1);
-                Stream.WriteInt16(3);
-                Stream.WriteInt16(2);
-                Stream.WriteInt64(FileTableOffset ^ Key.KEY_1);
-                Stream.WriteInt32(0);
-                Stream.WriteBytes(Encoding.Default.GetBytes("Angelica File Package, Perfect World."));
-                Stream.WriteBytes(new byte[215]);
-                Stream.WriteInt32(Key.ASIG_2);
-                Stream.WriteInt32(0);
-                Stream.WriteInt32(Files.Count);
-                Stream.WriteInt16(3);
-                Stream.WriteInt16(2);
-                Stream.Seek(4, SeekOrigin.Begin);
-                Stream.WriteInt64(Stream.GetLenght());
-                Stream.Close();
-                SetProgress?.Invoke(0);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show($"{e.Message}\n{e.Source}\n{e.StackTrace}");
-            }
         }
 
         public void AddFilesV3(List<string> files, string srcdir, string dstdir)
@@ -1003,62 +924,65 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             LoadData?.Invoke(1);
         }
 
-        public async Task AddFilesV3Async(List<string> files, string srcdir, string dstdir)
+        public Task AddFilesV3Async(List<string> files, string srcdir, string dstdir)
         {
-            Stream.Reopen(false);
-            SetProgressMax?.Invoke(files.Count);
-            int cl = Settings.CompressionLevel;
-            Stream.Seek(-280, SeekOrigin.End);
-            long current_end = Stream.ReadInt64() ^ Key.KEY_1;
-            
-            foreach (string file in files)
+            return Task.Run(() => 
             {
-                byte[] data = await FileExtensions.ReadAllBytesAsync(file);
-                int size = data.Length;
-                byte[] compressed = await Zlib.CompressAsync(data, cl);
-                if (compressed.Length < size)
-                    data = compressed;
-                string path = (dstdir + file.RemoveFirst(srcdir).RemoveFirstSeparator()).RemoveFirstSeparator();
-                var entry = Files.Where(x => x.Path == path).ToList();
-                if (entry.Count > 0)
+                Stream.Reopen(false);
+                SetProgressMax?.Invoke(files.Count);
+                int cl = Settings.CompressionLevel;
+                Stream.Seek(-280, SeekOrigin.End);
+                long current_end = Stream.ReadInt64() ^ Key.KEY_1;
+                
+                foreach (string file in files)
                 {
-                    if (data.Length <= entry[0].CSize)
+                    byte[] data = File.ReadAllBytes(file);
+                    int size = data.Length;
+                    byte[] compressed = Zlib.Compress(data, cl);
+                    if (compressed.Length < size)
+                        data = compressed;
+                    string path = (dstdir + file.RemoveFirst(srcdir).RemoveFirstSeparator()).RemoveFirstSeparator();
+                    var entry = Files.Where(x => x.Path == path).ToList();
+                    if (entry.Count > 0)
                     {
-                        entry[0].Size = size;
-                        entry[0].CSize = data.Length;
-                        Stream.Seek(entry[0].Offset, SeekOrigin.Begin);
-                        Stream.WriteBytes(data);
+                        if (data.Length <= entry[0].CSize)
+                        {
+                            entry[0].Size = size;
+                            entry[0].CSize = data.Length;
+                            Stream.Seek(entry[0].Offset, SeekOrigin.Begin);
+                            Stream.WriteBytes(data);
+                        }
+                        else
+                        {
+                            entry[0].Size = size;
+                            entry[0].CSize = data.Length;
+                            entry[0].Offset = current_end;
+                            Stream.Seek(current_end, SeekOrigin.Begin);
+                            current_end += data.Length;
+                            Stream.WriteBytes(data);
+                        }
                     }
                     else
                     {
-                        entry[0].Size = size;
-                        entry[0].CSize = data.Length;
-                        entry[0].Offset = current_end;
+                        Files.Add(new ArchiveEntryV3()
+                        {
+                            Path = path,
+                            Size = size,
+                            CSize = data.Length,
+                            Offset = current_end
+                        });
                         Stream.Seek(current_end, SeekOrigin.Begin);
                         current_end += data.Length;
                         Stream.WriteBytes(data);
                     }
+                    SetProgressNext?.Invoke();
                 }
-                else
-                {
-                    Files.Add(new ArchiveEntryV3()
-                    {
-                        Path = path,
-                        Size = size,
-                        CSize = data.Length,
-                        Offset = current_end
-                    });
-                    Stream.Seek(current_end, SeekOrigin.Begin);
-                    current_end += data.Length;
-                    Stream.WriteBytes(data);
-                }
-                SetProgressNext?.Invoke();
-            }
-            
-            await SaveFileTableV3Async(current_end);
-            SetProgress?.Invoke(0);
-            LoadData?.Invoke(0);
-            LoadData?.Invoke(1);
+                
+                SaveFileTableV3Async(current_end).Wait();
+                SetProgress?.Invoke(0);
+                LoadData?.Invoke(0);
+                LoadData?.Invoke(1);
+            });
         }
 
         public void DefragV3()
@@ -1117,62 +1041,65 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             MessageBox.Show($"Defragment Completed\nOld size: {oldsize}\nNew size: {newsize}");
         }
 
-        public async Task DefragV3Async()
+        public Task DefragV3Async()
         {
-            Stream.Reopen(true);
-            long oldsize = Stream.GetLenght();
-            ArchiveManager am = new ArchiveManager(Path + ".defrag", Key, false)
+            return Task.Run(() => 
             {
-                Version = Version
-            };
-            am.Stream.Reopen(false);
-            am.Stream.WriteInt32(Key.FSIG_1);
-            am.Stream.WriteInt64(0);
-            am.Stream.WriteInt32(Key.FSIG_2);
-            int cl = Settings.CompressionLevel;
-            SetProgressMax?.Invoke(Files.Count);
-            
-            foreach (IArchiveEntry file in Files)
-            {
-                byte[] data = await GetFileAsync(file, false);
-                byte[] compressed = await Zlib.CompressAsync(data, cl);
-                if (data.Length < compressed.Length)
-                    compressed = data;
-                file.Offset = am.Stream.Position;
-                file.Size = data.Length;
-                file.CSize = compressed.Length;
-                am.Stream.WriteBytes(compressed);
-                SetProgressNext?.Invoke();
-            }
-            
-            am.Files = Files;
-            await am.SaveFileTableV3Async(am.Stream.Position);
-            am.Stream.Close();
-            Stream.Close();
-            File.Delete(Path);
-            File.Move(Path + ".defrag", Path);
-            string pkx = Path.Replace(".pck", ".pkx");
-            if (File.Exists(pkx))
-            {
-                File.Delete(pkx);
-                File.Move(pkx + ".defrag", pkx);
-            }
-            string pkx1 = Path.Replace(".pck", ".pkx1");
-            if (File.Exists(pkx1))
-            {
-                File.Delete(pkx1);
-                File.Move(pkx1 + ".defrag", pkx1);
-            }
-            string pkx2 = Path.Replace(".pck", ".pkx2");
-            if (File.Exists(pkx2))
-            {
-                File.Delete(pkx2);
-                File.Move(pkx2 + ".defrag", pkx2);
-            }
-            await ReadFileTableAsync();
-            Stream.Reopen(true);
-            long newsize = Stream.GetLenght();
-            MessageBox.Show($"Defragment Completed\nOld size: {oldsize}\nNew size: {newsize}");
+                Stream.Reopen(true);
+                long oldsize = Stream.GetLenght();
+                ArchiveManager am = new ArchiveManager(Path + ".defrag", Key, false)
+                {
+                    Version = Version
+                };
+                am.Stream.Reopen(false);
+                am.Stream.WriteInt32(Key.FSIG_1);
+                am.Stream.WriteInt64(0);
+                am.Stream.WriteInt32(Key.FSIG_2);
+                int cl = Settings.CompressionLevel;
+                SetProgressMax?.Invoke(Files.Count);
+                
+                foreach (IArchiveEntry file in Files)
+                {
+                    byte[] data = GetFile(file, false);
+                    byte[] compressed = Zlib.Compress(data, cl);
+                    if (data.Length < compressed.Length)
+                        compressed = data;
+                    file.Offset = am.Stream.Position;
+                    file.Size = data.Length;
+                    file.CSize = compressed.Length;
+                    am.Stream.WriteBytes(compressed);
+                    SetProgressNext?.Invoke();
+                }
+                
+                am.Files = Files;
+                am.SaveFileTableV3Async(am.Stream.Position).Wait();
+                am.Stream.Close();
+                Stream.Close();
+                File.Delete(Path);
+                File.Move(Path + ".defrag", Path);
+                string pkx = Path.Replace(".pck", ".pkx");
+                if (File.Exists(pkx))
+                {
+                    File.Delete(pkx);
+                    File.Move(pkx + ".defrag", pkx);
+                }
+                string pkx1 = Path.Replace(".pck", ".pkx1");
+                if (File.Exists(pkx1))
+                {
+                    File.Delete(pkx1);
+                    File.Move(pkx1 + ".defrag", pkx1);
+                }
+                string pkx2 = Path.Replace(".pck", ".pkx2");
+                if (File.Exists(pkx2))
+                {
+                    File.Delete(pkx2);
+                    File.Move(pkx2 + ".defrag", pkx2);
+                }
+                ReadFileTableAsync().Wait();
+                Stream.Reopen(true);
+                long newsize = Stream.GetLenght();
+                MessageBox.Show($"Defragment Completed\nOld size: {oldsize}\nNew size: {newsize}");
+            });
         }
         #endregion
 
@@ -1237,6 +1164,7 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                 Stream.Reopen(true);
             Stream.Seek(entry.Offset, SeekOrigin.Begin);
             byte[] file = Stream.ReadBytes(entry.CSize);
+            
             if (entry.CSize < entry.Size)
                 return await Task.Run(() => Zlib.Decompress(file, entry.Size));
             else
@@ -1283,7 +1211,8 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                     if (!Directory.Exists(dir))
                         Directory.CreateDirectory(dir);
                     
-                    writeTasks.Add(Task.Run(() => {
+                    writeTasks.Add(Task.Run(() => 
+                    {
                         File.WriteAllBytes(path, file);
                         SetProgressNext?.Invoke();
                     }));

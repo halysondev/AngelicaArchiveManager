@@ -22,7 +22,6 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
     using System.Security.Permissions;
     using System.Text;
     using System.Windows;
-    using System.Reflection;
     using System.Windows.Interop; 
     using System.Windows.Controls;
     public abstract partial class FileDialogExt<T> : Microsoft.Win32.CommonDialog, IFileDlgExt where T : ContentControl, IWindowExt, new()
@@ -457,32 +456,33 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
         }
 
         [SecurityCritical]
-        private void PromptFileNotFound(string fileName)
-        {
-            this.MessageBoxWithFocusRestore("FileDialogFileNotFound" + fileName, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-        }
-
-        [SecurityCritical]
         internal virtual bool PromptUserIfAppropriate(string fileName)
         {
             bool flag = true;
             if (this.GetOption(0x1000))
             {
-                new FileIOPermission(FileIOPermissionAccess.PathDiscovery | FileIOPermissionAccess.Read, fileName).Assert();
                 try
                 {
                     flag = File.Exists(Path.GetFullPath(fileName));
                 }
-                finally
+                catch (Exception)
                 {
-                    CodeAccessPermission.RevertAssert();
+                    // Handle potential file access exceptions
+                    flag = false;
                 }
+                
                 if (!flag)
                 {
                     this.PromptFileNotFound(fileName);
                 }
             }
             return flag;
+        }
+
+        [SecurityCritical]
+        private void PromptFileNotFound(string fileName)
+        {
+            this.MessageBoxWithFocusRestore("FileDialogFileNotFound" + fileName, MessageBoxButton.OK, MessageBoxImage.Exclamation);
         }
 
         [SecurityCritical]
@@ -868,4 +868,3 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
 
     }
 }
-

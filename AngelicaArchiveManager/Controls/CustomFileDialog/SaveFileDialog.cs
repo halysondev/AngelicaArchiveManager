@@ -14,8 +14,6 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
     using Microsoft.Win32;
     using System;
     using System.IO;
-    using System.Security;
-    using System.Security.Permissions;
     using System.Windows;
     using System.Runtime.InteropServices;
     using System.Windows.Controls;
@@ -24,19 +22,16 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
     {
 
 
-        [SecurityCritical]
         public SaveFileDialog()
         {
             this.Initialize();
         }
 
-        [SecurityCritical]
         private void Initialize()
         {
             base.SetOption(2, true);
         }
 
-        [SecurityCritical]
         public Stream OpenFile()
         {
             string str = (base.FileNamesInternal.Length > 0) ? base.FileNamesInternal[0] : null;
@@ -44,23 +39,26 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
             {
                 throw new InvalidOperationException("FileNameMustNotBeNull");
             }
-            new FileIOPermission(FileIOPermissionAccess.Append | FileIOPermissionAccess.Write | FileIOPermissionAccess.Read, str).Assert();
-            return new FileStream(str, FileMode.Create, FileAccess.ReadWrite);
+            try
+            {
+                return new FileStream(str, FileMode.Create, FileAccess.ReadWrite);
+            }
+            catch (Exception)
+            {
+                throw new IOException($"Cannot create file: {str}");
+            }
         }
 
-        [SecurityCritical]
         private bool PromptFileCreate(string fileName)
         {
             return base.MessageBoxWithFocusRestore(string.Format("Do you want to create {0} {1}?",Environment.NewLine,fileName) , MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
         }
 
-        [SecurityCritical]
         private bool PromptFileOverwrite(string fileName)
         {
             return base.MessageBoxWithFocusRestore(string.Format("Do you want to overwite {0} {1}?", Environment.NewLine, fileName), MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
         }
 
-        [SecurityCritical]
         internal override bool PromptUserIfAppropriate(string fileName)
         {
             bool flag;
@@ -68,14 +66,14 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
             {
                 return false;
             }
-            new FileIOPermission(PermissionState.Unrestricted).Assert();
             try
             {
                 flag = File.Exists(Path.GetFullPath(fileName));
             }
-            finally
+            catch (Exception)
             {
-                CodeAccessPermission.RevertAssert();
+                // Handle potential file access exceptions
+                return false;
             }
             if ((this.CreatePrompt && !flag) && !this.PromptFileCreate(fileName))
             {
@@ -88,14 +86,12 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
             return true;
         }
 
-        [SecurityCritical]
         public override void Reset()
         {
             base.Reset();
             this.Initialize();
         }
 
-        [SecurityCritical]
         internal override bool RunFileDialog(OPENFILENAME_I ofn)
         {
             bool saveFileName = false;
@@ -123,7 +119,6 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
             {
                 return base.GetOption(0x2000);
             }
-            [SecurityCritical]
             set
             {
       
@@ -137,7 +132,6 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
             {
                 return base.GetOption(2);
             }
-            [SecurityCritical]
             set
             {
                 base.SetOption(2, value);
@@ -145,4 +139,3 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
         }
     }
 }
-

@@ -1,4 +1,4 @@
-﻿// Copyright © Decebal Mihailescu 2015
+// Copyright Decebal Mihailescu 2015
 
 // All rights reserved.
 // This code is released under The Code Project Open License (CPOL) 1.02
@@ -78,10 +78,10 @@ namespace AngelicaArchiveManager.Controls.CustomFileDialog
                     }
                 }
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
 
-                //MessageBox.Show(ex.Message + Environment.NewLine + "You might need to restart as an administrator!", "Unable to set Places for Open/Save dialog");
+                //MessageBox.Show("You might need to restart as an administrator!", "Unable to set Places for Open/Save dialog");
             }
         }
 

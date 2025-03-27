@@ -1,4 +1,4 @@
-﻿using AngelicaArchiveManager.Controls;
+using AngelicaArchiveManager.Controls;
 using AngelicaArchiveManager.Controls.CustomFileDialog;
 using AngelicaArchiveManager.Core.ArchiveEngine;
 using System;
@@ -414,7 +414,7 @@ namespace AngelicaArchiveManager
                     await archiveManager.AddFilesAsync(files, parentDir, "\\");
                     
                     // Ensure the file has the correct version markers
-                    archiveManager.SaveFileTable();
+                    await archiveManager.SaveFileTable();
                     
                     return true;
                 }
