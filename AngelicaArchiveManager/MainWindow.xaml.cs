@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace AngelicaArchiveManager
 {
@@ -76,7 +77,7 @@ namespace AngelicaArchiveManager
             {
                 FileDlgStartLocation = AddonWindowLocation.Bottom,
                 InitialDirectory = new System.Windows.Forms.OpenFileDialog().InitialDirectory,
-                FileDlgOkCaption = "&Открыть"
+                FileDlgOkCaption = "&OK"
             };
             ofd.SetPlaces(new object[] { @"c:\", (int)Places.MyComputer, (int)Places.Favorites, (int)Places.All_Users_MyVideo, (int)Places.MyVideos });
             if (ofd.ShowDialog() == true)
@@ -341,6 +342,123 @@ namespace AngelicaArchiveManager
             if (Archives.SelectedItem != null && Archives.SelectedItem is ArchiveTab tab)
             {
                 tab.HandleResize();
+            }
+        }
+        
+        private void CreateNewPckFromFolder(object sender, RoutedEventArgs e)
+        {
+            // Create folder browser dialog
+            var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Select a folder to create a PCK from"
+            };
+            
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                // Prompt for PCK name and key
+                var inputDialog = new Controls.CustomFileDialog.InputDialog();
+                inputDialog.Title = "Create New PCK";
+                
+                // Add PCK name field
+                inputDialog.AddTextBox("PckName", "PCK Name:", System.IO.Path.GetFileName(dialog.SelectedPath) + ".pck");
+                
+                // Add key selection combo box
+                var keyCombo = inputDialog.AddComboBox("ArchiveKey", "Select Archive Key:", Settings.Keys.Select(k => k.Name).ToList());
+                keyCombo.SelectedIndex = 0;
+                
+                // Add version selection
+                var versionCombo = inputDialog.AddComboBox("Version", "PCK Version:", new List<string> { "Version 2", "Version 3" });
+                versionCombo.SelectedIndex = 1; // Default to Version 3
+                
+                // Add compression level selection
+                var compressionLevels = new List<string>();
+                for (int i = 0; i <= 9; i++)
+                {
+                    compressionLevels.Add(i == 0 ? "0 - No Compression" : i == 9 ? "9 - Maximum Compression" : i.ToString());
+                }
+                var compressionCombo = inputDialog.AddComboBox("CompressionLevel", "Compression Level:", compressionLevels);
+                compressionCombo.SelectedIndex = Settings.CompressionLevel; // Default to current setting
+                
+                if (inputDialog.ShowDialog() == true)
+                {
+                    string pckName = inputDialog.GetTextBoxValue("PckName");
+                    int keyIndex = inputDialog.GetComboBoxSelectedIndex("ArchiveKey");
+                    int versionIndex = inputDialog.GetComboBoxSelectedIndex("Version");
+                    int compressionLevel = inputDialog.GetComboBoxSelectedIndex("CompressionLevel");
+                    ArchiveVersion selectedVersion = versionIndex == 0 ? ArchiveVersion.V2 : ArchiveVersion.V3;
+                    
+                    if (string.IsNullOrEmpty(pckName))
+                    {
+                        MessageBox.Show("PCK name cannot be empty.");
+                        return;
+                    }
+                    
+                    if (!pckName.EndsWith(".pck", StringComparison.OrdinalIgnoreCase))
+                    {
+                        pckName += ".pck";
+                    }
+                    
+                    // Get the full destination path
+                    string destPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(dialog.SelectedPath), pckName);
+                    
+                    // Get the folder name to use as the root in the PCK
+                    string folderName = System.IO.Path.GetFileName(dialog.SelectedPath);
+                    
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            // Create a new archive manager with the selected version
+                            var archiveManager = new Core.ArchiveEngine.ArchiveManager(destPath, Settings.Keys[keyIndex], false)
+                            {
+                                Version = selectedVersion
+                            };
+                            
+                            // Initialize the PCK file
+                            archiveManager.InitializePck(Settings.Keys[keyIndex].FSIG_1, Settings.Keys[keyIndex].FSIG_2);
+                            
+                            // Get all files in the source directory and subdirectories
+                            List<string> files = Directory.GetFiles(dialog.SelectedPath, "*", SearchOption.AllDirectories).ToList();
+                            
+                            // Set compression level temporarily for this operation
+                            int originalCompressionLevel = Settings.CompressionLevel;
+                            Settings.CompressionLevel = compressionLevel;
+                            
+                            // Add all files to the archive, preserving folder structure
+                            // The parent folder name is preserved by using Directory.GetParent(dialog.SelectedPath).FullName as srcdir
+                            string parentDir = Directory.GetParent(dialog.SelectedPath).FullName;
+                            await archiveManager.AddFilesAsync(files, parentDir, "\\");
+                            
+                            // Restore original compression level
+                            Settings.CompressionLevel = originalCompressionLevel;
+                            
+                            // Ensure the file has the correct version markers
+                            if (selectedVersion == ArchiveVersion.V2)
+                            {
+                                // Update file size and version markers
+                                archiveManager.SaveFileTable();
+                            }
+                            else // V3
+                            {
+                                // Update file size and version markers
+                                archiveManager.SaveFileTable();
+                            }
+                            
+                            Dispatcher.Invoke(() =>
+                            {
+                                MessageBox.Show($"Successfully created {pckName} with {files.Count} files.");
+                                System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{destPath}\"");
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                MessageBox.Show($"Error creating PCK file: {ex.Message}");
+                            });
+                        }
+                    });
+                }
             }
         }
     }

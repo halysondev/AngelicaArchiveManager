@@ -1331,5 +1331,73 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                     break;
             }
         }
+
+        /// <summary>
+        /// Initializes a new PCK file with the specified version format headers
+        /// </summary>
+        /// <param name="fsig1">The first file signature value</param>
+        /// <param name="fsig2">The second file signature value</param>
+        public void InitializePck(int fsig1, int fsig2)
+        {
+            Stream.Reopen(false);
+            
+            // Write appropriate header based on version
+            if (Version == ArchiveVersion.V2)
+            {
+                // V2 format has Int32 for placeholder (not Int64)
+                Stream.WriteInt32(fsig1);
+                Stream.WriteInt32(0); // Placeholder size
+                Stream.WriteInt32(fsig2);
+                
+                // Write version information at the end to make it recognizable
+                // V2 file has fixed signature at the end
+                long endPosition = Stream.Position;
+                
+                // Fill gap with zeros instead of seeking directly
+                Stream.WriteBytes(new byte[100]); // Write padding bytes
+                
+                // Write signature data
+                Stream.WriteInt32(Key.ASIG_1);
+                Stream.WriteInt16(2);  // Version = 2
+                Stream.WriteInt16(2);
+                Stream.WriteUInt32((uint)(endPosition ^ Key.KEY_1)); // FileTableOffset placeholder
+                Stream.WriteInt32(0);
+                Stream.WriteBytes(Encoding.Default.GetBytes("Angelica File Package, Perfect World."));
+                Stream.WriteBytes(new byte[215]);
+                Stream.WriteInt32(Key.ASIG_2);
+                Stream.WriteInt32(0);  // Files count = 0
+                Stream.WriteInt16(2);  // Version = 2
+                Stream.WriteInt16(2);
+            }
+            else // V3 format
+            {
+                Stream.WriteInt32(fsig1);
+                Stream.WriteInt64(0); // Placeholder size (Int64 in V3)
+                Stream.WriteInt32(fsig2);
+                
+                // Skip ahead to write version information
+                long endPosition = Stream.Position;
+                
+                // Fill gap with zeros instead of seeking directly
+                Stream.WriteBytes(new byte[100]); // Write padding bytes
+                
+                // Write signature data
+                Stream.WriteInt32(Key.ASIG_1);
+                Stream.WriteInt16(3);  // Version = 3
+                Stream.WriteInt16(2);
+                Stream.WriteInt64(endPosition ^ Key.KEY_1); // FileTableOffset placeholder
+                Stream.WriteInt32(0);
+                Stream.WriteBytes(Encoding.Default.GetBytes("Angelica File Package, Perfect World."));
+                Stream.WriteBytes(new byte[215]);
+                Stream.WriteInt32(Key.ASIG_2);
+                Stream.WriteInt32(0);
+                Stream.WriteInt32(0);  // Files count = 0
+                Stream.WriteInt16(3);  // Version = 3
+                Stream.WriteInt16(2);
+            }
+            
+            // Reset position to the end of the header for adding files
+            Stream.Seek(16, SeekOrigin.Begin);
+        }
     }
 }

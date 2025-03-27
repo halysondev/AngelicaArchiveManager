@@ -120,6 +120,12 @@
                                 <TextBlock Text="{StaticResource miMetroAddDirContents}" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
                             </StackPanel>
                         </Button>
+                        <Button Style="{StaticResource MenuButtonStyle}" Click="CreateNewPckFromFolder" Width="85">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="/Resources/32x32/Item8_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
+                                <TextBlock Text="Create new .pck from folder" FontSize="11" HorizontalAlignment="Center" FontFamily="Courier New" TextWrapping="Wrap" TextAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <Button Style="{StaticResource MenuButtonStyle}" Click="Defrag" Width="74">
                             <StackPanel Orientation="Vertical">
                                 <Image Source="/Resources/32x32/Item10_ImgData.png" Width="32" Height="32" Margin="0,2,0,4"/>
