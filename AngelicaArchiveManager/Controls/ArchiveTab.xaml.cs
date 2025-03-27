@@ -120,6 +120,20 @@ namespace AngelicaArchiveManager.Controls
             Archive.LoadData += LoadData;
         }
 
+        public ArchiveTab(string path)
+        {
+            InitializeComponent();
+            DataContext = this;
+            BuildTable();
+            Host.Child = Table;
+            Header = System.IO.Path.GetFileName(path);
+            Archive = new ArchiveManager(path);
+            Archive.SetProgress += SetProgress;
+            Archive.SetProgressMax += SetProgressMax;
+            Archive.SetProgressNext += SetProgressNext;
+            Archive.LoadData += LoadData;
+        }
+
         public void Initialize()
         {
             Task.Factory.StartNew(async () =>

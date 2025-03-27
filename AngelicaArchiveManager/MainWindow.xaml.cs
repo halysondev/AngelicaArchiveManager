@@ -81,14 +81,30 @@ namespace AngelicaArchiveManager
             ofd.SetPlaces(new object[] { @"c:\", (int)Places.MyComputer, (int)Places.Favorites, (int)Places.All_Users_MyVideo, (int)Places.MyVideos });
             if (ofd.ShowDialog() == true)
             {
-                var tab = new ArchiveTab(ofd.FileName, ofd.ChildWnd.Key);
-                tab.LoadDataWin += LoadData;
-                tab.CloseTab += CloseTab;
-                tab.FoldersUpdated += PopulateFolderTree;
-                tab.TabIndex = Archives.Items.Count;
-                Archives.Items.Add(tab);
-                Archives.SelectedIndex = tab.TabIndex;
-                tab.Initialize();
+                // O usuário pode escolher uma chave específica ou tentar todas
+                if (ofd.ChildWnd.UseSpecificKey)
+                {
+                    var tab = new ArchiveTab(ofd.FileName, ofd.ChildWnd.Key);
+                    tab.LoadDataWin += LoadData;
+                    tab.CloseTab += CloseTab;
+                    tab.FoldersUpdated += PopulateFolderTree;
+                    tab.TabIndex = Archives.Items.Count;
+                    Archives.Items.Add(tab);
+                    Archives.SelectedIndex = tab.TabIndex;
+                    tab.Initialize();
+                }
+                else
+                {
+                    // Tenta abrir com todas as chaves disponíveis
+                    var tab = new ArchiveTab(ofd.FileName);
+                    tab.LoadDataWin += LoadData;
+                    tab.CloseTab += CloseTab;
+                    tab.FoldersUpdated += PopulateFolderTree;
+                    tab.TabIndex = Archives.Items.Count;
+                    Archives.Items.Add(tab);
+                    Archives.SelectedIndex = tab.TabIndex;
+                    tab.Initialize();
+                }
                 
                 // Show archive content when a new tab is added
                 UpdateArchiveVisibility();
@@ -189,7 +205,8 @@ namespace AngelicaArchiveManager
         private void Window_Drop(object sender, DragEventArgs e)
         {
             string path = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
-            var tab = new ArchiveTab(path, Keys);
+            // Tenta abrir com todas as chaves disponíveis
+            var tab = new ArchiveTab(path);
             tab.LoadDataWin += LoadData;
             tab.CloseTab += CloseTab;
             tab.FoldersUpdated += PopulateFolderTree;

@@ -51,6 +51,9 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
 
         public void Seek(long offset, SeekOrigin origin)
         {
+            if (pck == null)
+                throw new InvalidOperationException("O arquivo principal (PCK) não está disponível.");
+            
             long max_size = 2147483392L + 4294966784L;
             switch (origin)
             {
@@ -64,26 +67,50 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
                     Position = GetLenght() + offset;
                     break;
             }
+            
+            if (Position < 0)
+                Position = 0;
+            
             if (Position <= pck.Length)
             {
                 pck.Seek(Position, SeekOrigin.Begin);
             }
-            else if (Position <= pck.Length + pkx.Length)
+            else if (pkx != null && Position <= pck.Length + pkx.Length)
             {
                 pkx.Seek(Position - pck.Length, SeekOrigin.Begin);
             }
-            else if (Position <= pck.Length + pkx.Length + pkx1.Length)
+            else if (pkx1 != null && Position <= pck.Length + (pkx != null ? pkx.Length : 0) + pkx1.Length)
             {
-                pkx1.Seek(Position - pck.Length - pkx.Length, SeekOrigin.Begin);
+                pkx1.Seek(Position - pck.Length - (pkx != null ? pkx.Length : 0), SeekOrigin.Begin);
+            }
+            else if (pkx2 != null)
+            {
+                pkx2.Seek(Position - pck.Length - (pkx != null ? pkx.Length : 0) - (pkx1 != null ? pkx1.Length : 0), SeekOrigin.Begin);
             }
             else
             {
-                pkx2.Seek(Position - pck.Length - pkx.Length - pkx1.Length, SeekOrigin.Begin);
+                throw new IOException($"Posição {Position} está além do tamanho do arquivo.");
             }
-            
         }
 
-        public long GetLenght() => pkx2 != null ? pck.Length + pkx.Length + pkx1.Length + pkx2.Length : pkx1 != null ? pck.Length + pkx.Length + pkx1.Length : pkx != null ? pck.Length + pkx.Length : pck.Length;
+        public long GetLenght()
+        {
+            if (pck == null)
+                return 0;
+            
+            long length = pck.Length;
+            
+            if (pkx != null)
+                length += pkx.Length;
+            
+            if (pkx1 != null)
+                length += pkx1.Length;
+            
+            if (pkx2 != null)
+                length += pkx2.Length;
+            
+            return length;
+        }
 
         public void Cut(long len)
         {
@@ -107,56 +134,85 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
 
         public byte[] ReadBytes(int count)
         {
+            if (count <= 0)
+                return new byte[0];
+            
+            if (pck == null)
+                throw new InvalidOperationException("O arquivo principal (PCK) não está disponível.");
+            
             byte[] array = new byte[count];
             int BytesRead = 0;
-            if (Position < pck.Length)
+            
+            try
             {
-                BytesRead = pck.Read(array, 0, count);
-                if (BytesRead < count && pkx != null)
+                if (Position < pck.Length)
                 {
-                    pkx.Seek(0, SeekOrigin.Begin);
-                    BytesRead += pkx.Read(array, BytesRead, count - BytesRead);
+                    BytesRead = pck.Read(array, 0, count);
+                    if (BytesRead < count && pkx != null)
+                    {
+                        pkx.Seek(0, SeekOrigin.Begin);
+                        BytesRead += pkx.Read(array, BytesRead, count - BytesRead);
+                    }
+                    if (BytesRead < count && pkx1 != null)
+                    {
+                        pkx1.Seek(0, SeekOrigin.Begin);
+                        BytesRead += pkx1.Read(array, BytesRead, count - BytesRead);
+                    }
+                    if (BytesRead < count && pkx2 != null)
+                    {
+                        pkx2.Seek(0, SeekOrigin.Begin);
+                        BytesRead += pkx2.Read(array, BytesRead, count - BytesRead);
+                    }
                 }
-                if (BytesRead < count && pkx1 != null)
+                else if (pkx != null && Position < pck.Length + pkx.Length)
                 {
-                    pkx1.Seek(0, SeekOrigin.Begin);
-                    BytesRead += pkx1.Read(array, BytesRead, count - BytesRead);
+                    BytesRead = pkx.Read(array, 0, count);
+                    if (BytesRead < count && pkx1 != null)
+                    {
+                        pkx1.Seek(0, SeekOrigin.Begin);
+                        BytesRead += pkx1.Read(array, BytesRead, count - BytesRead);
+                    }
+                    if (BytesRead < count && pkx2 != null)
+                    {
+                        pkx2.Seek(0, SeekOrigin.Begin);
+                        BytesRead += pkx2.Read(array, BytesRead, count - BytesRead);
+                    }
                 }
-                if (BytesRead < count && pkx2 != null)
+                else if (pkx1 != null && Position < pck.Length + (pkx != null ? pkx.Length : 0) + pkx1.Length)
                 {
-                    pkx2.Seek(0, SeekOrigin.Begin);
-                    BytesRead += pkx2.Read(array, BytesRead, count - BytesRead);
+                    BytesRead = pkx1.Read(array, 0, count);
+                    if (BytesRead < count && pkx2 != null)
+                    {
+                        pkx2.Seek(0, SeekOrigin.Begin);
+                        BytesRead += pkx2.Read(array, BytesRead, count - BytesRead);
+                    }
                 }
-
+                else if (pkx2 != null)
+                {
+                    BytesRead = pkx2.Read(array, 0, count);
+                }
+                else
+                {
+                    throw new IOException($"Posição {Position} está além do tamanho do arquivo.");
+                }
+                
+                Position += BytesRead;
+                
+                // Se não conseguimos ler todos os bytes solicitados
+                if (BytesRead < count)
+                {
+                    // Cria um novo array com o tamanho exato dos bytes lidos
+                    byte[] result = new byte[BytesRead];
+                    Array.Copy(array, result, BytesRead);
+                    return result;
+                }
             }
-            else if (Position < pck.Length + pkx.Length)
+            catch (Exception ex)
             {
-                BytesRead = pkx.Read(array, 0, count);
-                if (BytesRead < count && pkx1 != null)
-                {
-                    pkx1.Seek(0, SeekOrigin.Begin);
-                    BytesRead += pkx1.Read(array, BytesRead, count - BytesRead);
-                }
-                if (BytesRead < count && pkx2 != null)
-                {
-                    pkx2.Seek(0, SeekOrigin.Begin);
-                    BytesRead += pkx2.Read(array, BytesRead, count - BytesRead);
-                }
+                System.Diagnostics.Debug.WriteLine($"Erro ao ler bytes: {ex.Message}\n{ex.StackTrace}");
+                throw;
             }
-            else if (Position < pck.Length + pkx.Length + pkx1.Length)
-            {
-                BytesRead = pkx1.Read(array, 0, count);
-                if (BytesRead < count && pkx2 != null)
-                {
-                    pkx2.Seek(0, SeekOrigin.Begin);
-                    BytesRead += pkx2.Read(array, BytesRead, count - BytesRead);
-                }
-            }
-            else if (pkx2 != null)
-            {
-                BytesRead = pkx2.Read(array, 0, count);
-            }
-            Position += count;
+            
             return array;
         }
 
@@ -292,18 +348,38 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
 
         public void Dispose()
         {
-            pck?.Close();
-            pkx?.Close();
-            pkx1?.Close();
-            pkx2?.Close();
+            Close();
         }
 
         public void Close()
         {
-            pck?.Close();
-            pkx?.Close();
-            pkx1?.Close();
-            pkx2?.Close();
+            try
+            {
+                pck?.Close();
+                pck = null;
+            }
+            catch { /* Ignora exceções ao fechar */ }
+            
+            try
+            {
+                pkx?.Close();
+                pkx = null;
+            }
+            catch { /* Ignora exceções ao fechar */ }
+            
+            try
+            {
+                pkx1?.Close();
+                pkx1 = null;
+            }
+            catch { /* Ignora exceções ao fechar */ }
+            
+            try
+            {
+                pkx2?.Close();
+                pkx2 = null;
+            }
+            catch { /* Ignora exceções ao fechar */ }
         }
     }
 }

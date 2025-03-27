@@ -51,6 +51,66 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             }
         }
 
+        public ArchiveManager(string path, bool detect_version = true)
+        {
+            Path = path;
+            Stream = new ArchiveStream(path);
+            
+            if (detect_version)
+            {
+                try
+                {
+                    Stream.Reopen(true);
+                    
+                    // Verificar se o arquivo tem tamanho mínimo necessário
+                    long fileLength = Stream.GetLenght();
+                    if (fileLength < 10) // Tamanho mínimo necessário para um arquivo PCK válido
+                    {
+                        MessageBox.Show("O arquivo é muito pequeno para ser um arquivo PCK válido.");
+                        return;
+                    }
+                    
+                    Stream.Seek(-4, SeekOrigin.End);
+                    
+                    short version = Stream.ReadInt16();
+                    switch (version)
+                    {
+                        case 2:
+                            Version = ArchiveVersion.V2;
+                            break;
+                        case 3:
+                            Version = ArchiveVersion.V3;
+                            break;
+                        default:
+                            MessageBox.Show("Versão de arquivo desconhecida.");
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log detalhado apenas para debug, exibir mensagem simplificada para o usuário
+                    System.Diagnostics.Debug.WriteLine($"Erro ao detectar versão: {ex.Message}\n{ex.StackTrace}");
+                    MessageBox.Show($"Erro ao detectar versão do arquivo. O arquivo pode estar corrompido ou não ser um arquivo PCK válido.");
+                }
+                finally
+                {
+                    try
+                    {
+                        // Garantir que o stream seja sempre fechado
+                        Stream.Close();
+                    }
+                    catch
+                    {
+                        // Ignora erros ao fechar o stream
+                    }
+                }
+            }
+            
+            // Usar a primeira chave por padrão, mas o ReadFileTableAsync tentará todas as chaves
+            if (Settings.Keys.Count > 0)
+                Key = Settings.Keys[0];
+        }
+
         public void ReadFileTable()
         {
             switch (Version)
@@ -69,17 +129,277 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
 
         public async Task ReadFileTableAsync()
         {
-            switch (Version)
+            bool success = false;
+            Exception lastException = null;
+            List<ArchiveKey> keysToTry = new List<ArchiveKey>(Settings.Keys);
+            
+            // Se não houver chaves cadastradas, mostra aviso e retorna
+            if (keysToTry.Count == 0)
             {
-                case ArchiveVersion.V2:
-                    await ReadFileTableV2Async();
-                    break;
-                case ArchiveVersion.V3:
-                    await ReadFileTableV3Async();
-                    break;
-                default:
-                    MessageBox.Show("Unknown archive type");
-                    break;
+                MessageBox.Show("Não há chaves cadastradas para tentar abrir o arquivo.");
+                return;
+            }
+            
+            // Coloca a chave atual no início da lista para tentar primeiro
+            if (Key != null && keysToTry.Contains(Key))
+            {
+                keysToTry.Remove(Key);
+                keysToTry.Insert(0, Key);
+            }
+            
+            // Silencia as exceções de todas as tentativas de chaves, exceto a última
+            foreach (var key in keysToTry)
+            {
+                try
+                {
+                    Key = key;
+                    // Limpa a lista de arquivos antes de tentar uma nova chave
+                    Files.Clear();
+                    
+                    // Fecha o stream se já estiver aberto
+                    try { Stream.Close(); } catch { }
+                    
+                    // Log de debug para saber qual chave está sendo tentada
+                    System.Diagnostics.Debug.WriteLine($"Tentando abrir com a chave: {key.Name}");
+                    
+                    switch (Version)
+                    {
+                        case ArchiveVersion.V2:
+                            await ReadFileTableV2AsyncWithKey();
+                            success = true;
+                            System.Diagnostics.Debug.WriteLine($"Arquivo aberto com sucesso usando a chave: {key.Name}");
+                            break;
+                        case ArchiveVersion.V3:
+                            await ReadFileTableV3AsyncWithKey();
+                            success = true;
+                            System.Diagnostics.Debug.WriteLine($"Arquivo aberto com sucesso usando a chave: {key.Name}");
+                            break;
+                        default:
+                            // Versão desconhecida, continue para a próxima chave
+                            continue;
+                    }
+                    
+                    // Se chegou aqui, significa que foi bem-sucedido
+                    if (success)
+                        break;
+                }
+                catch (Exception ex)
+                {
+                    // Armazena a última exceção para debugging
+                    lastException = ex;
+                    
+                    // Log detalhado apenas para debug, não mostrar ao usuário
+                    System.Diagnostics.Debug.WriteLine($"Falha ao abrir com a chave '{key.Name}': {ex.Message}");
+                    
+                    // Garante que o stream seja fechado após uma exceção
+                    try { Stream.Close(); } catch { }
+                    
+                    // Continua para a próxima chave
+                    continue;
+                }
+            }
+            
+            // Se nenhuma chave funcionou, mostre o erro
+            if (!success)
+            {
+                MessageBox.Show("Não foi possível abrir o arquivo com nenhuma das chaves cadastradas.");
+                
+                // Apenas lança exceção em modo de debug para facilitar investigação
+                #if DEBUG
+                if (lastException != null)
+                    System.Diagnostics.Debug.WriteLine($"Última exceção: {lastException.Message}\n{lastException.StackTrace}");
+                #endif
+            }
+        }
+
+        private async Task ReadFileTableV2AsyncWithKey()
+        {
+            // Certifique-se de que o Stream seja aberto corretamente
+            Stream.Reopen(true);
+            
+            try
+            {
+                // Validar o arquivo e as posições
+                Stream.Seek(-8, SeekOrigin.End);
+                int filesCount = Stream.ReadInt32();
+                
+                // Validação básica do número de arquivos - mais tolerante
+                if (filesCount < 0 || filesCount > 10000000) // muito mais tolerante
+                    throw new InvalidDataException($"Número de arquivos inválido: {filesCount}");
+                    
+                SetProgressMax?.Invoke(filesCount);
+                
+                Stream.Seek(-272, SeekOrigin.End);
+                long fileTableOffset = (long)((ulong)((uint)(Stream.ReadUInt32() ^ (ulong)Key.KEY_1)));
+                
+                // Validação mais tolerante do offset da tabela
+                if (fileTableOffset < 0 || fileTableOffset >= Stream.GetLenght())
+                    throw new InvalidDataException($"Offset da tabela de arquivos inválido: {fileTableOffset}");
+                    
+                Stream.Seek(fileTableOffset, SeekOrigin.Begin);
+                
+                // Calcula o tamanho dos dados da tabela de forma mais tolerante
+                long dataSize = Stream.GetLenght() - fileTableOffset - 280;
+                // Aceita qualquer tamanho positivo
+                if (dataSize <= 0)
+                    throw new InvalidDataException($"Tamanho da tabela de arquivos inválido: {dataSize}");
+                    
+                byte[] tableData = Stream.ReadBytes((int)dataSize);
+                
+                bool taskSucceeded = false;
+                Exception taskException = null;
+                
+                await Task.Run(() => 
+                {
+                    try
+                    {
+                        using (BinaryReader tableStream = new BinaryReader(new MemoryStream(tableData)))
+                        {
+                            for (int i = 0; i < filesCount; ++i)
+                            {
+                                // Validação para evitar leituras inválidas
+                                if (tableStream.BaseStream.Position >= tableStream.BaseStream.Length - 8)
+                                    throw new InvalidDataException("Fim inesperado da tabela de arquivos");
+                                    
+                                int entrySize = tableStream.ReadInt32() ^ Key.KEY_1;
+                                
+                                // Validação básica do tamanho da entrada - com limite muito maior
+                                if (entrySize <= 0 || entrySize > 1000000) // aumentado para 1MB
+                                    throw new InvalidDataException($"Tamanho de entrada inválido: {entrySize}");
+                                    
+                                tableStream.ReadInt32(); // Skip
+                                
+                                // Validação para evitar leituras além do fim do stream
+                                if (tableStream.BaseStream.Position + entrySize > tableStream.BaseStream.Length)
+                                    throw new InvalidDataException("Tamanho de entrada excede os limites da tabela");
+                                    
+                                byte[] entryData = tableStream.ReadBytes(entrySize);
+                                
+                                var entry = new ArchiveEntryV2(entryData);
+                                lock (Files)
+                                {
+                                    Files.Add(entry);
+                                }
+                                SetProgressNext?.Invoke();
+                            }
+                        }
+                        taskSucceeded = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Captura exceções dentro da Task mas não propaga
+                        taskException = ex;
+                        System.Diagnostics.Debug.WriteLine($"Erro ao processar tabela V2: {ex.Message}\n{ex.StackTrace}");
+                    }
+                });
+                
+                // Verificar se a task foi bem-sucedida
+                if (!taskSucceeded)
+                    throw new Exception("Falha ao processar a tabela de arquivos", taskException);
+                    
+                SetProgress?.Invoke(0);
+                LoadData?.Invoke(0);
+            }
+            finally
+            {
+                // Garantir que o Stream seja fechado mesmo em caso de exceção
+                Stream.Close();
+            }
+        }
+
+        private async Task ReadFileTableV3AsyncWithKey()
+        {
+            // Certifique-se de que o Stream seja aberto corretamente
+            Stream.Reopen(true);
+            
+            try
+            {
+                // Validar o arquivo e as posições
+                Stream.Seek(-8, SeekOrigin.End);
+                int filesCount = Stream.ReadInt32();
+                
+                // Validação básica do número de arquivos - mais tolerante
+                if (filesCount < 0 || filesCount > 10000000) // muito mais tolerante
+                    throw new InvalidDataException($"Número de arquivos inválido: {filesCount}");
+                    
+                SetProgressMax?.Invoke(filesCount);
+                
+                Stream.Seek(-280, SeekOrigin.End);
+                long fileTableOffset = Stream.ReadInt64() ^ Key.KEY_1;
+                
+                // Validação mais tolerante do offset da tabela
+                if (fileTableOffset < 0 || fileTableOffset >= Stream.GetLenght())
+                    throw new InvalidDataException($"Offset da tabela de arquivos inválido: {fileTableOffset}");
+                    
+                Stream.Seek(fileTableOffset, SeekOrigin.Begin);
+                
+                // Calcula o tamanho dos dados da tabela de forma mais tolerante
+                long dataSize = Stream.GetLenght() - fileTableOffset - 288;
+                // Aceita qualquer tamanho positivo
+                if (dataSize <= 0)
+                    throw new InvalidDataException($"Tamanho da tabela de arquivos inválido: {dataSize}");
+                    
+                byte[] tableData = Stream.ReadBytes((int)dataSize);
+                
+                bool taskSucceeded = false;
+                Exception taskException = null;
+                
+                await Task.Run(() => 
+                {
+                    try
+                    {
+                        using (BinaryReader tableStream = new BinaryReader(new MemoryStream(tableData)))
+                        {
+                            for (int i = 0; i < filesCount; ++i)
+                            {
+                                // Validação para evitar leituras inválidas
+                                if (tableStream.BaseStream.Position >= tableStream.BaseStream.Length - 8)
+                                    throw new InvalidDataException("Fim inesperado da tabela de arquivos");
+                                    
+                                int entrySize = tableStream.ReadInt32() ^ Key.KEY_1;
+                                
+                                // Validação básica do tamanho da entrada
+                                // Aumentado para 1MB para ser extremamente tolerante com entradas grandes
+                                if (entrySize <= 0 || entrySize > 1000000)
+                                    throw new InvalidDataException($"Tamanho de entrada inválido: {entrySize}");
+                                    
+                                tableStream.ReadInt32(); // Skip
+                                
+                                // Validação para evitar leituras além do fim do stream
+                                if (tableStream.BaseStream.Position + entrySize > tableStream.BaseStream.Length)
+                                    throw new InvalidDataException("Tamanho de entrada excede os limites da tabela");
+                                    
+                                byte[] entryData = tableStream.ReadBytes(entrySize);
+                                
+                                var entry = new ArchiveEntryV3(entryData);
+                                lock (Files)
+                                {
+                                    Files.Add(entry);
+                                }
+                                SetProgressNext?.Invoke();
+                            }
+                        }
+                        taskSucceeded = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Captura exceções dentro da Task e armazena para análise, mas não propaga
+                        taskException = ex;
+                        System.Diagnostics.Debug.WriteLine($"Erro ao processar tabela V3: {ex.Message}\n{ex.StackTrace}");
+                    }
+                });
+                
+                // Verificar se a task foi bem-sucedida
+                if (!taskSucceeded)
+                    throw new Exception("Falha ao processar a tabela de arquivos", taskException);
+                    
+                SetProgress?.Invoke(0);
+                LoadData?.Invoke(0);
+            }
+            finally
+            {
+                // Garantir que o Stream seja fechado mesmo em caso de exceção
+                Stream.Close();
             }
         }
 
@@ -469,6 +789,7 @@ namespace AngelicaArchiveManager.Core.ArchiveEngine
             am.Files = Files;
             await am.SaveFileTableV2Async(am.Stream.Position);
             am.Stream.Close();
+            Stream.Close();
             File.Delete(Path);
             File.Move(Path + ".defrag", Path);
             long newsize = Stream.GetLenght();
